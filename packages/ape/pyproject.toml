@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ape-lang"
+version = "0.2.1"
+description = "A deterministic AI-first programming language for unambiguous human-AI collaboration"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.11"
+
+authors = [
+    {name = "David Van Aelst", email = "david@skyrah.be"}
+]
+
+license = { text = "MIT" }
+
+keywords = [
+    "programming-language",
+    "compiler",
+    "AI",
+    "deterministic",
+    "CDS",
+    "ape"
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Compilers",
+    "Topic :: Software Development :: Code Generators"
+]
+
+dependencies = []
+
+[project.scripts]
+ape = "ape.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

@@ -1,0 +1,31 @@
+module main
+
+import sys
+import tools
+
+entity Result:
+    doubled: Integer
+    powered: Integer
+
+task main:
+    inputs:
+        value: Integer
+    outputs:
+        result: Result
+    constraints:
+        - deterministic
+    steps:
+        - call tools.double_value with value to get doubled
+        - call tools.compute_power with value and 2 to get powered
+        - create Result with doubled and powered
+        - call tools.run_diagnostics with doubled
+        - return result
+
+flow demo:
+    steps:
+        - set value to 5
+        - call main with value
+        - convert result to message
+        - call sys.print with message
+    constraints:
+        - deterministic

@@ -1,0 +1,57 @@
+module file_processor
+
+import sys
+import io
+import math
+
+entity Stats:
+    count: Integer
+    doubled_count: Integer
+
+task process_file:
+    inputs:
+        input_path: String
+        output_path: String
+    outputs:
+        stats: Stats
+    constraints:
+        - deterministic
+    steps:
+        - call io.read_file with input_path to get content
+        - count lines in content to get count
+        - call math.multiply with count and 2 to get doubled_count
+        - create Stats with count and doubled_count
+        - call io.write_file with output_path and content
+        - return stats
+
+task display_stats:
+    inputs:
+        stats: Stats
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - convert stats to message
+        - call sys.print with message
+        - return success
+
+task interactive_demo:
+    inputs:
+        prompt_text: String
+    outputs:
+        user_input: String
+    constraints:
+        - deterministic
+    steps:
+        - call io.read_line with prompt_text
+        - return user_input
+
+flow demo:
+    steps:
+        - call interactive_demo with prompt
+        - call process_file with paths
+        - call display_stats with stats
+        - call sys.print with completion message
+    constraints:
+        - deterministic

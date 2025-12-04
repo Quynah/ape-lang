@@ -1,0 +1,41 @@
+module io
+
+# Input/Output operations
+
+task read_line:
+    inputs:
+        prompt: String
+    outputs:
+        line: String
+
+    constraints:
+        - deterministic
+    steps:
+        - display prompt if provided
+        - read one line from standard input
+        - return the line as a string
+
+task write_file:
+    inputs:
+        path: String
+        content: String
+    outputs:
+        success: Boolean
+
+    constraints:
+        - deterministic
+    steps:
+        - write content to file at path
+        - return true
+
+task read_file:
+    inputs:
+        path: String
+    outputs:
+        content: String
+
+    constraints:
+        - deterministic
+    steps:
+        - read entire file from path
+        - return content as string

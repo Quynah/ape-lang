@@ -1,0 +1,74 @@
+module math
+
+# Mathematical operations
+
+task add:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - compute sum of a and b
+        - return result
+
+task subtract:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - compute difference of a minus b
+        - return result
+
+task multiply:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - compute product of a times b
+        - return result
+
+task divide:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - compute quotient of a divided by b
+        - return result
+
+task power:
+    inputs:
+        base: Integer
+        exponent: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - compute base raised to exponent
+        - return result
+
+task abs:
+    inputs:
+        x: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - compute absolute value of x
+        - return result

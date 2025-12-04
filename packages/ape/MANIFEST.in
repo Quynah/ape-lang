@@ -1,0 +1,29 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include pyproject.toml
+
+# Standard library
+recursive-include ape_std *.ape
+include ape_std/README.md
+
+# Documentation
+recursive-include docs *.md
+
+# Examples
+recursive-include examples *.ape
+include examples/README.md
+include examples/MODULES_README.md
+recursive-include examples/custom_lib_project *.ape
+
+# Exclude test files and build artifacts
+recursive-exclude tests *
+exclude .gitignore
+exclude pytest.ini
+exclude *.pyc
+exclude __pycache__
+recursive-exclude * __pycache__
+recursive-exclude * *.pyc
+recursive-exclude generated *
+recursive-exclude dist *
+recursive-exclude build *

@@ -1,0 +1,17 @@
+LICENSE
+README.md
+pyproject.toml
+src/ape_openai/__init__.py
+src/ape_openai/executor.py
+src/ape_openai/generator.py
+src/ape_openai/schema.py
+src/ape_openai/utils.py
+src/ape_openai.egg-info/PKG-INFO
+src/ape_openai.egg-info/SOURCES.txt
+src/ape_openai.egg-info/dependency_links.txt
+src/ape_openai.egg-info/requires.txt
+src/ape_openai.egg-info/top_level.txt
+tests/test_executor.py
+tests/test_generator.py
+tests/test_schema.py
+tests/test_utils.py

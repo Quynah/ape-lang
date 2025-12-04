@@ -1,0 +1,231 @@
+Metadata-Version: 2.4
+Name: ape-langchain
+Version: 0.1.1
+Summary: LangChain integration layer for the Ape AI-first programming language
+Author-email: David Van Aelst <david@skyrah.be>
+License: MIT
+Project-URL: Homepage, https://github.com/Quynah/ape-langchain
+Project-URL: Repository, https://github.com/Quynah/ape-langchain
+Project-URL: Documentation, https://github.com/Quynah/ape-langchain#readme
+Project-URL: Issues, https://github.com/Quynah/ape-langchain/issues
+Keywords: ape,langchain,ai,llm,deterministic,agent
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: ape-lang>=0.2.0
+Requires-Dist: langchain>=0.1.0
+Requires-Dist: typing-extensions>=4.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+Dynamic: license-file
+
+# ape-langchain
+
+**LangChain integration layer for the Ape AI-first programming language**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+
+## What is this?
+
+`ape-langchain` bridges the [Ape programming language](https://github.com/Quynah/Ape) with [LangChain](https://github.com/langchain-ai/langchain), enabling you to:
+
+- **Use Ape tasks as LangChain tools** with deterministic execution
+- **Eliminate AI hallucination** in tool invocation through strict validation
+- **Build reliable AI agents** with formally defined, constraint-validated workflows
+
+Ape is a deterministic AI-first language designed to remove ambiguity from AI-generated code. `ape-langchain` makes Ape tasks seamlessly callable from LangChain agents.
+
+## Installation
+
+```bash
+pip install ape-langchain
+```
+
+This will automatically install `ape-lang` and `langchain` as dependencies.
+
+## Quick Start
+
+### 1. Write an Ape Task
+
+Create `pricing.ape`:
+
+```ape
+task calculate_total_price
+  inputs:
+    base_price: String
+    tax_rate: String
+  outputs:
+    total: String
+  constraints:
+    - base_price must be numeric
+    - tax_rate must be between 0 and 1
+  steps:
+    - Parse base_price as decimal
+    - Multiply by (1 + tax_rate)
+    - Return as string
+```
+
+### 2. Use it in LangChain
+
+```python
+from ape_langchain import ApeTool
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import OpenAI
+
+# Wrap Ape task as LangChain tool
+pricing_tool = ApeTool(
+    ape_file="pricing.ape",
+    function="calculate_total_price",
+    description="Calculate total price with tax"
+)
+
+# Create agent with deterministic tool
+llm = OpenAI(temperature=0)
+agent = initialize_agent(
+    tools=[pricing_tool],
+    llm=llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# Execute - AI decides when to call, but execution is deterministic
+result = agent.run("What's the total for $99.99 with 21% tax?")
+print(result)
+```
+
+### 3. Or Use ApeChain Directly
+
+For simpler workflows without full agent orchestration:
+
+```python
+from ape_langchain import ApeChain
+
+chain = ApeChain.from_ape_file("pricing.ape", function="calculate_total_price")
+
+result = chain.run(base_price="99.99", tax_rate="0.21")
+print(result)  # Deterministic, validated output
+```
+
+## Why Use This?
+
+### Problem: AI Tool Invocation is Unreliable
+
+```python
+# Traditional approach - AI can hallucinate parameters, miss constraints
+def calculate_price(base, tax):
+    return base * (1 + tax)  # What if base is negative? What if tax > 1?
+```
+
+### Solution: Ape + LangChain
+
+```python
+# Ape approach - constraints enforced, no ambiguity
+pricing_tool = ApeTool("pricing.ape", "calculate_total_price")
+# - Input validation automatic
+# - Constraints checked before execution
+# - No hallucination possible
+```
+
+## API Overview
+
+### `ApeTool`
+
+LangChain `BaseTool` adapter for Ape tasks.
+
+```python
+from ape_langchain import ApeTool
+
+tool = ApeTool(
+    ape_file="path/to/module.ape",
+    function="task_name",
+    description="Optional description for LLM"
+)
+
+# Use in LangChain agents
+agent = initialize_agent(tools=[tool], llm=llm, ...)
+```
+
+### `ApeChain`
+
+High-level wrapper for direct execution.
+
+```python
+from ape_langchain import ApeChain
+
+chain = ApeChain.from_ape_file("module.ape", function="task_name")
+result = chain.run(param1="value", param2="value")
+```
+
+### `ApeTask`
+
+Low-level task representation with JSON Schema export.
+
+```python
+from ape_langchain import ApeTask
+from ape import compile
+
+module = compile("module.ape")
+task = ApeTask.from_module(module, "task_name")
+
+# Get JSON Schema for OpenAI/Anthropic function calling
+schema = task.to_json_schema()
+```
+
+## Features
+
+- ✅ **Deterministic execution** - Ape constraints prevent invalid inputs
+- ✅ **Type-safe** - Full type checking before execution
+- ✅ **LangChain native** - Works with all LangChain agent types
+- ✅ **JSON Schema export** - Compatible with OpenAI/Anthropic function calling
+- ✅ **Error handling** - Clear exception types for debugging
+
+## Requirements
+
+- Python 3.11+
+- ape-lang >=0.2.0
+- langchain >=0.1.0
+
+## Development Status
+
+**v0.1.0** - Initial release
+
+Currently supports:
+- Basic Ape task wrapping
+- LangChain tool integration
+- Simple type mapping (all parameters as strings for now)
+
+Roadmap:
+- Advanced type system (int, float, list, dict)
+- Async execution support
+- Multi-task orchestration
+- Native Ape control flow support
+
+## Contributing
+
+Contributions welcome! See the [main Ape repository](https://github.com/Quynah/Ape) for guidelines.
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Links
+
+- [Ape Language](https://github.com/Quynah/Ape)
+- [LangChain](https://github.com/langchain-ai/langchain)
+- [Documentation](https://github.com/Quynah/Ape/tree/main/docs)
+
+---
+
+**Built with Ape 🦍 - Because AI should execute deterministically, not approximately.**

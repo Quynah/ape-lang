@@ -1,0 +1,49 @@
+# Email Policy Example
+#
+# Demonstrates:
+# - Entity definitions with custom types
+# - Enum for threat levels
+# - Task with deterministic constraint
+# - Policy rules for email handling
+
+enum ThreatLevel:
+    - LOW
+    - MEDIUM
+    - HIGH
+
+entity Email:
+    from_domain: String
+    subject: String
+    body: String
+
+entity EmailAssessment:
+    email: Email
+    level: ThreatLevel
+    reason: String
+
+task assess_email:
+    inputs:
+        email: Email
+    outputs:
+        assessment: EmailAssessment
+    
+    constraints:
+        - deterministic
+    
+    steps:
+        - check if from_domain is in trusted safelist
+        - if domain is trusted return LOW threat level
+        - check subject for suspicious keywords
+        - if suspicious keywords found return HIGH threat level with reason
+        - check body length and structure
+        - if body is empty then return MEDIUM threat level
+        - if body is malformed then return MEDIUM threat level
+        - otherwise return LOW threat level
+
+policy email_threat_policy:
+    rules:
+        - Emails from trusted domains are always assessed as LOW
+        - Emails with HIGH assessment must be quarantined immediately
+        - Emails with MEDIUM assessment require manual review within 24 hours
+        - All email assessments must be logged with timestamp and assessor
+        - Safelist must be reviewed quarterly

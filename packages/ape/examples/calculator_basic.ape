@@ -1,0 +1,41 @@
+enum Operation:
+    - add
+    - subtract
+    - multiply
+    - divide
+
+entity CalculationRequest:
+    left: Float
+    right: Float
+    op: Operation
+
+entity CalculationResult:
+    left: Float
+    right: Float
+    op: Operation
+    result: Float
+
+task calculate:
+    inputs:
+        request: CalculationRequest
+    outputs:
+        result: CalculationResult
+    constraints:
+        - deterministic
+    steps:
+        - check request operation type
+        - if operation is add then compute left plus right
+        - if operation is subtract then compute left minus right
+        - if operation is multiply then compute left times right
+        - if operation is divide then compute left divided by right
+        - create CalculationResult with left and right and op from request
+        - set result field to computed value
+        - return result
+
+flow calculator_demo:
+    steps:
+        - create CalculationRequest with left equals 1 and right equals 2 and op equals add
+        - call calculate task with the request
+        - output the result to console
+    constraints:
+        - deterministic

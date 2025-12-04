@@ -1,0 +1,38 @@
+module tools
+
+import sys
+import math
+
+task run_diagnostics:
+    inputs:
+        value: Integer
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - call sys.print with value
+        - return success
+
+task compute_power:
+    inputs:
+        base: Integer
+        exponent: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - call math.power with base and exponent
+        - return result
+
+task double_value:
+    inputs:
+        x: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - call math.multiply with x and 2
+        - return result

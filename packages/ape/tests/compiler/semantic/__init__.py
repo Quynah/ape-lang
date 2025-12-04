@@ -1,0 +1,3 @@
+"""
+Semantic validation tests package
+"""

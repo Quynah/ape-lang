@@ -1,0 +1,45 @@
+module main
+
+import sys
+import math
+
+entity Calculation:
+    x: Integer
+    y: Integer
+    sum: Integer
+    product: Integer
+
+task perform_calculation:
+    inputs:
+        x: Integer
+        y: Integer
+    outputs:
+        result: Calculation
+    constraints:
+        - deterministic
+    steps:
+        - call math.add with x and y to get sum
+        - call math.multiply with x and y to get product
+        - create Calculation with x and y and sum and product
+        - return result
+
+task display_result:
+    inputs:
+        calc: Calculation
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - convert calc to string message
+        - call sys.print with message
+        - return success
+
+flow demo:
+    steps:
+        - set x to 10
+        - set y to 5
+        - call perform_calculation with x and y
+        - call display_result with result
+    constraints:
+        - deterministic

@@ -1,0 +1,583 @@
+Metadata-Version: 2.4
+Name: ape-lang
+Version: 0.2.1
+Summary: A deterministic AI-first programming language for unambiguous human-AI collaboration
+Author-email: David Van Aelst <david@skyrah.be>
+License: MIT
+Keywords: programming-language,compiler,AI,deterministic,CDS,ape
+Classifier: Programming Language :: Python :: 3.11
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Compilers
+Classifier: Topic :: Software Development :: Code Generators
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
+# Ape — A Deterministic AI-First Programming Language
+
+**Ape is a programming language designed for AI and humans to communicate unambiguously.**
+
+---
+
+## Why Ape Exists
+
+Traditional programming languages allow ambiguity—multiple interpretations of the same code, implicit behavior, and "magic" that confuses both humans and AI systems. This creates a fundamental problem:
+
+**AI and humans often miscommunicate because conventional languages were not designed for deterministic collaboration.**
+
+Ape solves this by:
+- **Removing ambiguity** with explicit syntax and deterministic semantics
+- **Predictable module resolution** with a strict, ordered search path
+- **Clear error messages** when something is unclear (no guessing)
+- **Dual-purpose design**: Ape works both as a translator layer (human/AI → Python) and as a standalone language growing toward its own runtime
+
+### Two Roles, One Language
+
+**1. Translator Layer (Bridge Language)**  
+Ape translates human/AI intent into target languages (currently Python). AI models can generate Ape code reliably because the syntax is unambiguous and the compiler enforces correctness.
+
+**2. Standalone Language**  
+Ape is evolving into a complete language with its own module system, standard library, type system, and (eventually) bytecode VM.
+
+---
+
+## Status: v0.2.0
+
+Ape v0.2.0 is a **working prototype** with the following features complete:
+
+### ✅ Core Compiler
+- **Lexer & Parser** - Tokenizes and parses Ape source files into AST
+- **Module system** - `module <name>` declarations for importable files
+- **Import system** - `import <module>` statements with deterministic resolution
+- **Linker** - Resolves dependencies, builds module graph, detects circular imports
+- **Semantic validator** - Type checking, symbol resolution, constraint validation
+- **Code generator** - Generates Python code with name mangling for modules
+
+### ✅ Standard Library v0.1
+Three core modules in `ape_std/`:
+- **`sys`** - System operations (print, exit)
+- **`io`** - Input/output (read_line, write_file, read_file)
+- **`math`** - Arithmetic operations (add, subtract, multiply, divide, power, abs, sqrt, factorial)
+
+### ✅ Testing & Examples
+- **192 tests passing** - Full coverage of parser, linker, codegen, stdlib
+- **Working examples** - hello_imports, stdlib_complete, custom_lib_project
+- **Documentation** - Complete specs for modules, stdlib, and philosophy
+
+### 🚧 Not Yet Implemented
+- Control flow (if, while, for)
+- Type system beyond basic types
+- Ape bytecode VM
+- Package manager
+
+See the [Roadmap](#roadmap-to-v100) for details on upcoming features.
+
+---
+
+---
+
+## Syntax Examples
+
+### Example 1: Hello World
+
+```ape
+module main
+
+import sys
+
+task main:
+    inputs:
+        none
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - call sys.print with "Hello from Ape!"
+        - return success
+```
+
+### Example 2: Using Math
+
+```ape
+module main
+
+import sys
+import math
+
+task main:
+    inputs:
+        none
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - call math.add with 1 and 2 to get x
+        - call sys.print with x
+        - return success
+```
+
+### Example 3: Custom Libraries
+
+Ape resolves imports using a deterministic search order. Create a project structure:
+
+```
+project/
+├── main.ape
+└── lib/
+    └── tools.ape
+```
+
+**`lib/tools.ape`:**
+```ape
+module tools
+
+import sys
+
+task log_message:
+    inputs:
+        message: String
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - call sys.print with message
+        - return success
+```
+
+**`main.ape`:**
+```ape
+module main
+
+import tools
+
+task main:
+    inputs:
+        none
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - call tools.log_message with "Hello from custom library!"
+        - return success
+```
+
+When `main.ape` imports `tools`, the linker searches:
+1. `./lib/tools.ape` ← **Found here**
+2. `./tools.ape`
+3. `<APE_INSTALL>/ape_std/tools.ape`
+
+First match wins. If not found → compile error.
+
+---
+
+---
+
+## How Ape Works
+
+Ape compiles source files through a deterministic pipeline:
+
+### 1. Parse
+Ape source files (`.ape`) are tokenized and parsed into an Abstract Syntax Tree (AST).
+
+### 2. Link
+The linker resolves all `import` statements using a strict, deterministic order:
+
+**Resolution Order:**
+1. `./lib/<module>.ape` - Local project library (highest priority)
+2. `./<module>.ape` - Same directory as importing file
+3. `<APE_INSTALL>/ape_std/<module>.ape` - Standard library (lowest priority)
+
+**First match wins.** If no match found → compile error with clear message.
+
+The linker:
+- Builds a complete dependency graph
+- Detects circular dependencies (e.g., `a` imports `b`, `b` imports `a`)
+- Returns modules in topological order (dependencies first)
+
+### 3. Validate
+The semantic validator checks:
+- Symbol resolution (all referenced types exist)
+- Type correctness
+- Constraint validation
+- Policy adherence
+
+### 4. Generate Code
+The code generator produces target language code (currently Python):
+- **Name mangling**: `math.add` becomes `math__add` in Python
+- **Module separation**: Each Ape module generates a separate Python file
+- **Deterministic output**: Same Ape code → same Python code every time
+
+### 5. Backend: Python (Current)
+Ape currently compiles to Python. Generated code is:
+- Syntactically correct Python
+- Type-hinted with dataclasses for entities
+- Executable without runtime dependencies (beyond Python stdlib)
+
+### Long-term Goal: Ape VM
+Future versions will compile to Ape bytecode and run on an Ape VM, making Python an optional backend.
+
+---
+
+## Installation
+
+### From PyPI
+
+```bash
+pip install ape-lang
+```
+
+### From Source
+
+```bash
+git clone https://github.com/Quynah/Ape.git
+cd Ape
+pip install -e .
+```
+
+### Verify Installation
+
+```bash
+ape --version
+```
+
+---
+
+## Basic Commands
+
+### Validate Ape Source
+
+```bash
+ape validate main.ape
+```
+
+Runs the full compiler pipeline up to validation (parse → link → validate).
+
+### Compile to Python
+
+```bash
+ape build main.ape --target=python
+```
+
+Generates Python code in `generated/` directory.
+
+### Parse Only (Debug)
+
+```bash
+ape parse main.ape
+```
+
+Outputs AST for inspection.
+
+### IR Only (Debug)
+
+```bash
+ape ir main.ape
+```
+
+Outputs Intermediate Representation (IR) as JSON-like structure.
+
+---
+
+---
+
+## Ape Standard Library v0.1
+
+Ape v0.2.0 includes three core modules in the standard library (`ape_std/`):
+
+### `sys` - System Operations
+
+```ape
+task print:
+    inputs:
+        message: String
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+```
+
+Prints a message to stdout.
+
+```ape
+task exit:
+    inputs:
+        code: Integer
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+```
+
+Exits the program with the given status code.
+
+### `io` - Input/Output Operations
+
+```ape
+task read_line:
+    inputs:
+        prompt: String
+    outputs:
+        line: String
+    constraints:
+        - deterministic
+```
+
+Reads a line from stdin with an optional prompt.
+
+```ape
+task write_file:
+    inputs:
+        path: String
+        content: String
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+```
+
+Writes content to a file at the specified path.
+
+```ape
+task read_file:
+    inputs:
+        path: String
+    outputs:
+        content: String
+    constraints:
+        - deterministic
+```
+
+Reads the entire contents of a file.
+
+### `math` - Mathematical Operations
+
+Basic arithmetic (all work with `Integer` type):
+
+- `add(a: Integer, b: Integer) → result: Integer`
+- `subtract(a: Integer, b: Integer) → result: Integer`
+- `multiply(a: Integer, b: Integer) → result: Integer`
+- `divide(a: Integer, b: Integer) → result: Float`
+- `power(base: Integer, exponent: Integer) → result: Integer`
+- `abs(x: Integer) → result: Integer`
+- `sqrt(x: Float) → result: Float`
+- `factorial(n: Integer) → result: Integer`
+
+All math operations are marked as `deterministic`.
+
+**Usage example:**
+
+```ape
+module main
+
+import math
+import sys
+
+task demo:
+    inputs:
+        none
+    outputs:
+        success: Boolean
+    constraints:
+        - deterministic
+    steps:
+        - call math.add with 5 and 3 to get sum
+        - call math.multiply with sum and 2 to get result
+        - call sys.print with result
+        - return success
+```
+
+---
+
+---
+
+## Roadmap to v1.0.0
+
+Ape 1.0.0 will be a **complete, minimal programming language** with:
+
+- ✅ **Modules & imports** (deterministic resolution)
+- ✅ **Standard library v0.1** (sys, io, math)
+- 🚧 **Control flow** (if, while, for)
+- 🚧 **Type system** (int, float, string, bool, list, map)
+- 🚧 **Error model** (compile-time and runtime errors)
+- 🚧 **Standard library v1.0** (expanded: string, json, http, etc.)
+- 🚧 **Stable Python backend** (deterministic Ape → Python compilation)
+- 🚧 **CLI improvements** (run, compile, fmt, test)
+- 🚧 **Complete specification** and documentation
+
+### Version Roadmap
+
+| Version | Focus | Status |
+|---------|-------|--------|
+| **v0.2.0** | Modules, imports, linker, stdlib v0.1 | ✅ Complete |
+| **v0.3.0** | Control flow + basic types | 🚧 Planned |
+| **v0.4.0** | Error model + structured types | 🚧 Planned |
+| **v0.5.0** | Expanded stdlib (string, json) | 🚧 Planned |
+| **v0.6.0** | Stable compiler backend | 🚧 Planned |
+| **v1.0.0** | Complete minimal language | 🎯 Goal |
+
+**Timeline:** v1.0.0 targeted for Q2 2026
+
+---
+
+## Philosophy
+
+Ape is built on four core principles:
+
+### 1. Determinism Over Cleverness
+
+Same input → same output, always. No hidden state, no implicit behavior, no "magic."
+
+**Bad (ambiguous):**
+```
+maybe do something
+```
+
+**Good (explicit):**
+```ape
+task do_something:
+    inputs:
+        condition: Boolean
+    outputs:
+        result: String
+    constraints:
+        - deterministic
+    steps:
+        - if condition is true then ...
+        - return result
+```
+
+### 2. No Guessing
+
+If the compiler can't determine what you mean with 100% certainty, it fails with a **clear error message**.
+
+**Example:**
+```
+LINK ERROR: Module 'utils' not found.
+
+Searched:
+  1. ./lib/utils.ape (not found)
+  2. ./utils.ape (not found)
+  3. <APE_INSTALL>/ape_std/utils.ape (not found)
+
+Did you mean to create 'lib/utils.ape'?
+```
+
+### 3. AI-Optimized Syntax
+
+Ape's syntax is designed so AI models can generate correct code reliably:
+- Unambiguous keywords (`task`, `entity`, `import`)
+- Clear structure (indentation-based like Python)
+- Explicit types and constraints
+- Deterministic compilation rules
+
+### 4. Explicit Over Implicit
+
+Every dependency, type, and behavior is declared. Nothing is inferred unless absolutely safe.
+
+```ape
+# Explicit module declaration
+module main
+
+# Explicit imports
+import sys
+import math
+
+# Explicit types
+task calculate:
+    inputs:
+        x: Integer
+        y: Integer
+    outputs:
+        result: Integer
+    
+    # Explicit constraints
+    constraints:
+        - deterministic
+    
+    steps:
+        - call math.add with x and y to get result
+        - return result
+```
+
+📖 **Full philosophy**: See [`docs/philosophy.md`](docs/philosophy.md)
+
+---
+
+---
+
+## Documentation
+
+📖 **Core Documentation**
+- [Philosophy & Design](docs/philosophy.md) - Why Ape exists and how it works
+- [Module System Specification](docs/modules_and_imports.md) - Complete module/import semantics
+- [Standard Library v0.1](docs/stdlib_v0.1.md) - API reference for sys, io, math
+- [Documentation Index](docs/README.md) - Navigate all docs
+
+📁 **Examples**
+- [examples/hello_imports.ape](examples/hello_imports.ape) - Basic module usage
+- [examples/stdlib_complete.ape](examples/stdlib_complete.ape) - All stdlib modules
+- [examples/custom_lib_project/](examples/custom_lib_project/) - Project with local library
+
+🧪 **Testing**
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test suite
+pytest tests/linker/ -v
+pytest tests/codegen/ -v
+```
+
+**Current Test Status:** 192/192 passing ✅
+
+---
+
+## Contributing
+
+Ape is under active development. Contributions welcome!
+
+**Areas needing help:**
+- Control flow implementation (if, while, for)
+- Type system expansion
+- Standard library additions
+- VS Code extension
+- Documentation improvements
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
+---
+
+## License
+
+MIT License
+
+Copyright (c) 2025 David Van Aelst
+
+See [LICENSE](LICENSE) for full details.
+
+---
+
+## Project Status
+
+**Current Version:** v0.2.0  
+**Status:** 🟢 Working prototype  
+**Tests:** 192/192 passing  
+**Target:** v1.0.0 by Q2 2026
+
+**Quick Links:**
+- [GitHub Repository](https://github.com/Quynah/Ape)
+- [PyPI Package](https://pypi.org/project/ape-lang/)
+- [Issue Tracker](https://github.com/Quynah/Ape/issues)
+- [Changelog](CHANGELOG.md)
+
+---
+
+**Ape v0.2.0** — Built for deterministic AI collaboration 🦍

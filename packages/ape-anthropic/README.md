@@ -1,0 +1,289 @@
+# ape-anthropic
+
+Anthropic Claude integration for APE (AI Programmatic Execution).
+
+## What is ape-anthropic?
+
+**ape-anthropic** bridges APE's deterministic validation layer with Anthropic's Claude tool use API. It prevents hallucinations in Claude function parameters by enforcing strict type checking and constraints before execution.
+
+## Why ape-anthropic?
+
+Claude's tool use is powerful but unreliable:
+- Function parameters can be incorrectly formatted
+- Type mismatches cause runtime errors
+- Missing required fields break execution
+- No validation before calling your code
+
+**ape-anthropic solves this** by adding APE as a validation layer:
+
+```
+Claude → JSON parameters → APE validation → Deterministic execution ✓
+```
+
+## Installation
+
+```bash
+# Core package (schema conversion + execution)
+pip install ape-anthropic
+
+# With Anthropic SDK (for code generation)
+pip install ape-anthropic[anthropic]
+
+# Development dependencies
+pip install ape-anthropic[dev]
+```
+
+**Prerequisites:**
+- Python >= 3.11
+- ape-lang >= 0.2.0
+
+## Quick Start
+
+```python
+from anthropic import Anthropic
+from ape_anthropic import ApeAnthropicFunction
+
+# 1. Create Ape task file
+# calculator.ape:
+# task add:
+#     inputs: a: Integer, b: Integer
+#     outputs: sum: Integer
+#     constraints: a > 0, b > 0
+#     steps: sum = a + b
+
+# 2. Load as Claude tool
+func = ApeAnthropicFunction.from_ape_file("calculator.ape", "add")
+
+# 3. Get Claude tool schema
+tool_schema = func.to_claude_tool()
+
+# 4. Use with Claude
+client = Anthropic(api_key="your-key")
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    tools=[tool_schema],
+    messages=[{"role": "user", "content": "Add 5 and 3"}]
+)
+
+# 5. Execute with APE validation
+if response.stop_reason == "tool_use":
+    tool_use = response.content[-1]
+    result = func.execute(tool_use.input)
+    print(f"Result: {result}")  # 8
+```
+
+## API Reference
+
+### Schema Conversion
+
+**`ape_task_to_claude_schema(task: ApeTask) -> dict`**
+
+Converts APE task to Claude tool schema.
+
+```python
+from ape_anthropic import ape_task_to_claude_schema, ApeTask
+
+task = ApeTask(
+    name="calculate_tax",
+    inputs={"amount": "float", "rate": "float"},
+    output="float",
+    description="Calculate tax amount"
+)
+
+schema = ape_task_to_claude_schema(task)
+# {
+#     "name": "calculate_tax",
+#     "description": "Calculate tax amount",
+#     "input_schema": {
+#         "type": "object",
+#         "properties": {
+#             "amount": {"type": "number"},
+#             "rate": {"type": "number"}
+#         },
+#         "required": ["amount", "rate"]
+#     }
+# }
+```
+
+### Execution
+
+**`execute_claude_call(module: ApeModule, function_name: str, input_dict: dict) -> Any`**
+
+Executes Claude tool use with APE validation.
+
+```python
+from ape import compile
+from ape_anthropic import execute_claude_call
+
+module = compile("calculator.ape")
+result = execute_claude_call(module, "add", {"a": 5, "b": 3})
+# 8
+```
+
+**`class ApeAnthropicFunction`**
+
+High-level wrapper for Ape → Claude integration.
+
+Methods:
+- `from_ape_file(ape_file, function_name)` - Load from .ape file
+- `to_claude_tool()` - Get Claude tool schema
+- `execute(input_dict)` - Execute with validation
+
+### Code Generation (Experimental)
+
+**`generate_ape_from_nl(prompt: str, model: str = "claude-3-5-sonnet-20241022") -> str`**
+
+Generate Ape code from natural language using Claude.
+
+Requires: `pip install ape-anthropic[anthropic]`
+
+```python
+from ape_anthropic import generate_ape_from_nl
+
+code = generate_ape_from_nl("Create a task that validates email addresses")
+print(code)
+```
+
+## Features
+
+### Type Safety
+APE validates all parameters before execution:
+- **Type checking**: str → string, int → integer, float → number
+- **Required fields**: Missing parameters rejected
+- **Constraint validation**: Business rules enforced
+- **Deterministic execution**: No hallucinations
+
+### Claude Tool Schema Format
+```json
+{
+  "name": "function_name",
+  "description": "Function description",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "param": {"type": "number"}
+    },
+    "required": ["param"]
+  }
+}
+```
+
+### Error Handling
+- **JSONDecodeError**: Invalid input format
+- **TypeError**: Parameter type mismatch
+- **ApeExecutionError**: Constraint violation
+- **KeyError**: Unknown function
+
+## Type Mapping
+
+| APE Type | Claude JSON Schema |
+|----------|-------------------|
+| String   | string            |
+| Integer  | integer           |
+| Float    | number            |
+| Boolean  | boolean           |
+| List     | array             |
+| Dict     | object            |
+
+## Examples
+
+### Calculator
+
+```python
+# calculator.ape
+task multiply:
+    inputs: x: Float, y: Float
+    outputs: result: Float
+    constraints: x >= 0, y >= 0
+    steps: result = x * y
+
+# main.py
+from anthropic import Anthropic
+from ape_anthropic import ApeAnthropicFunction
+
+client = Anthropic(api_key="...")
+func = ApeAnthropicFunction.from_ape_file("calculator.ape", "multiply")
+
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    tools=[func.to_claude_tool()],
+    messages=[{"role": "user", "content": "Multiply 4 and 7"}]
+)
+
+if response.stop_reason == "tool_use":
+    result = func.execute(response.content[-1].input)
+    print(result)  # 28.0
+```
+
+### Multi-Tool Agent
+
+```python
+from ape_anthropic import ApeAnthropicFunction
+
+# Load multiple tools
+tools = [
+    ApeAnthropicFunction.from_ape_file("math.ape", "add"),
+    ApeAnthropicFunction.from_ape_file("math.ape", "subtract"),
+    ApeAnthropicFunction.from_ape_file("string.ape", "reverse")
+]
+
+# Convert to Claude schemas
+tool_schemas = [t.to_claude_tool() for t in tools]
+
+# Execute based on Claude's choice
+for tool_use in response.content:
+    if hasattr(tool_use, 'name'):
+        func = next(t for t in tools if t.function_name == tool_use.name)
+        result = func.execute(tool_use.input)
+```
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              Anthropic Claude API                │
+└─────────────────┬───────────────────────────────┘
+                  │ tool_use response
+                  ▼
+         ┌────────────────────┐
+         │  ape-anthropic     │
+         │  - Schema converter │
+         │  - Input validator  │
+         │  - Executor         │
+         └────────┬───────────┘
+                  │ validated params
+                  ▼
+         ┌────────────────────┐
+         │   APE Runtime      │
+         │  - Type checking   │
+         │  - Constraints     │
+         │  - Execution       │
+         └────────────────────┘
+```
+
+## Comparison: Claude vs OpenAI
+
+| Feature | Claude | OpenAI |
+|---------|--------|--------|
+| Tool format | `input_schema` | `parameters` |
+| Tool ID | Required | Optional |
+| Streaming | Yes | Yes |
+| Max tools | No limit | No limit |
+| ape-anthropic | ✅ | Use ape-openai |
+
+## License
+
+MIT
+
+## Links
+
+- **APE Core**: https://github.com/yourusername/ape
+- **ape-langchain**: Integration with LangChain
+- **ape-openai**: Integration with OpenAI
+- **Documentation**: https://ape-lang.org
+
+## Contributing
+
+Contributions welcome! Please open issues or PRs.

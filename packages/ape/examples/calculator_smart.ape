@@ -1,0 +1,49 @@
+enum Operation:
+    - add
+    - subtract
+    - multiply
+    - divide
+
+entity CalculationRequest:
+    left: Float
+    right: Float
+    op: Operation
+
+entity CalculationResult:
+    left: Float
+    right: Float
+    op: Operation
+    result: Float
+    summary: String
+
+task calculate_smart:
+    inputs:
+        request: CalculationRequest
+    outputs:
+        result: CalculationResult
+
+    constraints:
+        - deterministic
+        - allow deviation:
+            scope: steps
+            mode: creative
+            bounds:
+                - result.result must always equal the mathematically correct outcome
+                - summary must describe the operation and result using request.left, request.right and result.result
+                - no additional side effects are allowed
+            rationale: "Formatting of the human-readable summary can vary"
+
+    steps:
+        - compute result based on request operation and operands
+        - copy request left and right and operation to result
+        - generate human-readable summary describing the calculation
+        - store summary in result
+        - return result
+
+flow calculator_smart_demo:
+    steps:
+        - create CalculationRequest with left equals 3 and right equals 4 and op equals multiply
+        - run task calculate_smart
+        - print result summary to the console
+    constraints:
+        - deterministic

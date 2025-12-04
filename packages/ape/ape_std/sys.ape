@@ -1,0 +1,26 @@
+module sys
+
+# System-level operations and I/O
+
+task print:
+    inputs:
+        message: String
+    outputs:
+        success: Boolean
+
+    constraints:
+        - deterministic
+    steps:
+        - output message to standard output
+        - return true
+
+task exit:
+    inputs:
+        code: Integer
+    outputs:
+        success: Boolean
+
+    constraints:
+        - deterministic
+    steps:
+        - terminate program with exit code
