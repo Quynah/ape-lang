@@ -1,220 +1,296 @@
 Metadata-Version: 2.4
 Name: ape-langchain
-Version: 0.1.1
-Summary: LangChain integration layer for the Ape AI-first programming language
+Version: 0.1.0
+Summary: LangChain integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
-Project-URL: Homepage, https://github.com/Quynah/ape-langchain
-Project-URL: Repository, https://github.com/Quynah/ape-langchain
-Project-URL: Documentation, https://github.com/Quynah/ape-langchain#readme
-Project-URL: Issues, https://github.com/Quynah/ape-langchain/issues
-Keywords: ape,langchain,ai,llm,deterministic,agent
+Project-URL: Homepage, https://github.com/Quynah/ape-lang
+Project-URL: Documentation, https://github.com/Quynah/ape-lang/blob/main/packages/ape-langchain/README.md
+Project-URL: Repository, https://github.com/Quynah/ape-lang
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
-Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.11
-Classifier: Programming Language :: Python :: 3.12
-Classifier: Topic :: Software Development :: Libraries :: Python Modules
-Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Libraries
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
-License-File: LICENSE
-Requires-Dist: ape-lang>=0.2.0
-Requires-Dist: langchain>=0.1.0
+Requires-Dist: ape-lang>=0.2.2
 Requires-Dist: typing-extensions>=4.0.0
+Provides-Extra: langchain
+Requires-Dist: langchain>=0.1.0; extra == "langchain"
+Requires-Dist: langchain-core>=0.1.0; extra == "langchain"
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
 Requires-Dist: black>=23.0.0; extra == "dev"
 Requires-Dist: mypy>=1.0.0; extra == "dev"
-Dynamic: license-file
 
 # ape-langchain
 
-**LangChain integration layer for the Ape AI-first programming language**
+LangChain integration for APE (AI Programmatic Execution).
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+## What is ape-langchain?
 
-## What is this?
+**ape-langchain** provides seamless integration between APE's deterministic functions and LangChain's agent framework. Convert APE tasks into LangChain tools with automatic validation and type safety.
 
-`ape-langchain` bridges the [Ape programming language](https://github.com/Quynah/Ape) with [LangChain](https://github.com/langchain-ai/langchain), enabling you to:
+## Why ape-langchain?
 
-- **Use Ape tasks as LangChain tools** with deterministic execution
-- **Eliminate AI hallucination** in tool invocation through strict validation
-- **Build reliable AI agents** with formally defined, constraint-validated workflows
+LangChain agents are powerful but need reliable tools:
+- Tool parameters must be validated
+- Type safety prevents runtime errors
+- Deterministic execution ensures consistency
+- Clear contracts between agent and tools
 
-Ape is a deterministic AI-first language designed to remove ambiguity from AI-generated code. `ape-langchain` makes Ape tasks seamlessly callable from LangChain agents.
+**ape-langchain solves this** by wrapping APE functions as LangChain tools:
+
+```
+LangChain Agent → APE Tool → Validation → Deterministic execution ✓
+```
 
 ## Installation
 
 ```bash
+# Core package
 pip install ape-langchain
+
+# With LangChain
+pip install ape-langchain[langchain]
+
+# Development dependencies
+pip install ape-langchain[dev]
 ```
 
-This will automatically install `ape-lang` and `langchain` as dependencies.
+**Prerequisites:**
+- Python >= 3.11
+- ape-lang >= 0.2.0
 
 ## Quick Start
 
-### 1. Write an Ape Task
-
-Create `pricing.ape`:
-
-```ape
-task calculate_total_price
-  inputs:
-    base_price: String
-    tax_rate: String
-  outputs:
-    total: String
-  constraints:
-    - base_price must be numeric
-    - tax_rate must be between 0 and 1
-  steps:
-    - Parse base_price as decimal
-    - Multiply by (1 + tax_rate)
-    - Return as string
-```
-
-### 2. Use it in LangChain
-
 ```python
-from ape_langchain import ApeTool
-from langchain.agents import initialize_agent, AgentType
 from langchain.llms import OpenAI
+from ape_langchain import create_langchain_tool
 
-# Wrap Ape task as LangChain tool
-pricing_tool = ApeTool(
-    ape_file="pricing.ape",
-    function="calculate_total_price",
-    description="Calculate total price with tax"
-)
+# 1. Create Ape task file
+# calculator.ape:
+# task add:
+#     inputs: a: Integer, b: Integer
+#     outputs: sum: Integer
+#     constraints: deterministic
+#     steps: sum = a + b
 
-# Create agent with deterministic tool
+# 2. Create LangChain tool
+tool = create_langchain_tool("calculator.ape", "add")
+
+# 3. Use with LangChain
+from langchain.agents import initialize_agent, AgentType
+
 llm = OpenAI(temperature=0)
 agent = initialize_agent(
-    tools=[pricing_tool],
+    tools=[tool],
     llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True
 )
 
-# Execute - AI decides when to call, but execution is deterministic
-result = agent.run("What's the total for $99.99 with 21% tax?")
-print(result)
+# 4. Run agent
+result = agent.run("Add 5 and 3")
+print(result)  # "The sum of 5 and 3 is 8"
 ```
 
-### 3. Or Use ApeChain Directly
+## API Reference
 
-For simpler workflows without full agent orchestration:
+### Schema Conversion
 
-```python
-from ape_langchain import ApeChain
+**`ape_task_to_langchain_schema(task: ApeTask) -> dict`**
 
-chain = ApeChain.from_ape_file("pricing.ape", function="calculate_total_price")
-
-result = chain.run(base_price="99.99", tax_rate="0.21")
-print(result)  # Deterministic, validated output
-```
-
-## Why Use This?
-
-### Problem: AI Tool Invocation is Unreliable
+Converts APE task to LangChain tool schema.
 
 ```python
-# Traditional approach - AI can hallucinate parameters, miss constraints
-def calculate_price(base, tax):
-    return base * (1 + tax)  # What if base is negative? What if tax > 1?
-```
+from ape_langchain import ape_task_to_langchain_schema, ApeTask
 
-### Solution: Ape + LangChain
-
-```python
-# Ape approach - constraints enforced, no ambiguity
-pricing_tool = ApeTool("pricing.ape", "calculate_total_price")
-# - Input validation automatic
-# - Constraints checked before execution
-# - No hallucination possible
-```
-
-## API Overview
-
-### `ApeTool`
-
-LangChain `BaseTool` adapter for Ape tasks.
-
-```python
-from ape_langchain import ApeTool
-
-tool = ApeTool(
-    ape_file="path/to/module.ape",
-    function="task_name",
-    description="Optional description for LLM"
+task = ApeTask(
+    name="calculate_tax",
+    inputs={"amount": "float", "rate": "float"},
+    output="float",
+    description="Calculate tax amount"
 )
 
-# Use in LangChain agents
-agent = initialize_agent(tools=[tool], llm=llm, ...)
+schema = ape_task_to_langchain_schema(task)
 ```
 
-### `ApeChain`
+### Tool Creation
 
-High-level wrapper for direct execution.
+**`create_langchain_tool(ape_file, function_name) -> StructuredTool`**
+
+Create a LangChain StructuredTool from an Ape file.
 
 ```python
-from ape_langchain import ApeChain
+from ape_langchain import create_langchain_tool
 
-chain = ApeChain.from_ape_file("module.ape", function="task_name")
-result = chain.run(param1="value", param2="value")
+tool = create_langchain_tool("math_ops.ape", "multiply")
+
+# Use in agent
+result = tool.run({"a": 4, "b": 7})
 ```
 
-### `ApeTask`
+### Tool Wrapper
 
-Low-level task representation with JSON Schema export.
+**`ApeLangChainTool`**
+
+Low-level wrapper for more control.
 
 ```python
-from ape_langchain import ApeTask
-from ape import compile
+from ape_langchain import ApeLangChainTool
 
-module = compile("module.ape")
-task = ApeTask.from_module(module, "task_name")
+ape_tool = ApeLangChainTool.from_ape_file("calc.ape", "divide")
+langchain_tool = ape_tool.as_structured_tool()
 
-# Get JSON Schema for OpenAI/Anthropic function calling
-schema = task.to_json_schema()
+# Execute directly
+result = ape_tool.execute(a=10, b=2)
+```
+
+### Chain Creation
+
+**`create_ape_chain(ape_file, llm) -> AgentExecutor`**
+
+Create a complete LangChain agent with all functions from an Ape file.
+
+```python
+from ape_langchain import create_ape_chain
+from langchain.llms import OpenAI
+
+llm = OpenAI(temperature=0)
+chain = create_ape_chain("calculator.ape", llm=llm)
+
+result = chain.run("Calculate 15 * 8 and then add 42")
 ```
 
 ## Features
 
-- ✅ **Deterministic execution** - Ape constraints prevent invalid inputs
-- ✅ **Type-safe** - Full type checking before execution
-- ✅ **LangChain native** - Works with all LangChain agent types
-- ✅ **JSON Schema export** - Compatible with OpenAI/Anthropic function calling
-- ✅ **Error handling** - Clear exception types for debugging
+- ✅ **StructuredTool integration**: Full LangChain tool support
+- ✅ **Automatic validation**: Type and constraint checking
+- ✅ **Pydantic schemas**: Generated from APE types
+- ✅ **Multi-tool agents**: Load entire APE modules as tools
+- ✅ **Error handling**: Clear error propagation
+- ✅ **Type mapping**: APE types → Python types → Pydantic
 
-## Requirements
+## Type Mapping
 
-- Python 3.11+
-- ape-lang >=0.2.0
-- langchain >=0.1.0
+| Ape Type | Python Type | LangChain Schema |
+|----------|-------------|------------------|
+| String   | str         | string           |
+| Integer  | int         | integer          |
+| Float    | float       | number           |
+| Boolean  | bool        | boolean          |
+| List     | list        | array            |
+| Dict     | dict        | object           |
 
-## Development Status
+## Advanced Usage
 
-**v0.1.0** - Initial release
+### Multiple Tools
 
-Currently supports:
-- Basic Ape task wrapping
-- LangChain tool integration
-- Simple type mapping (all parameters as strings for now)
+```python
+from ape_langchain import ApeLangChainTool
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import OpenAI
 
-Roadmap:
-- Advanced type system (int, float, list, dict)
-- Async execution support
-- Multi-task orchestration
-- Native Ape control flow support
+# Load multiple functions
+add_tool = create_langchain_tool("calc.ape", "add")
+multiply_tool = create_langchain_tool("calc.ape", "multiply")
+divide_tool = create_langchain_tool("calc.ape", "divide")
 
-## Contributing
+# Create agent
+llm = OpenAI(temperature=0)
+agent = initialize_agent(
+    tools=[add_tool, multiply_tool, divide_tool],
+    llm=llm,
+    agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION
+)
 
-Contributions welcome! See the [main Ape repository](https://github.com/Quynah/Ape) for guidelines.
+result = agent.run("Calculate (5 + 3) * 2 / 4")
+```
+
+### Custom Descriptions
+
+```python
+tool = create_langchain_tool(
+    "calc.ape",
+    "add",
+    description="Adds two numbers together with validation"
+)
+```
+
+### With Memory
+
+```python
+from langchain.memory import ConversationBufferMemory
+from langchain.agents import initialize_agent
+
+memory = ConversationBufferMemory(memory_key="chat_history")
+agent = initialize_agent(
+    tools=[tool],
+    llm=llm,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    memory=memory
+)
+```
+
+## Examples
+
+### Basic Calculator Agent
+
+```python
+# calculator.ape
+task add:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - result = a + b
+
+task multiply:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - result = a * b
+```
+
+```python
+# agent.py
+from ape_langchain import create_ape_chain
+from langchain.llms import OpenAI
+
+llm = OpenAI(temperature=0)
+agent = create_ape_chain("calculator.ape", llm=llm)
+
+agent.run("What is 7 times 8, then add 15?")
+# Agent uses multiply(7, 8) → 56, then add(56, 15) → 71
+```
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Format code
+black .
+
+# Type checking
+mypy src/
+```
 
 ## License
 
@@ -222,10 +298,7 @@ MIT License - see LICENSE file for details.
 
 ## Links
 
-- [Ape Language](https://github.com/Quynah/Ape)
-- [LangChain](https://github.com/langchain-ai/langchain)
-- [Documentation](https://github.com/Quynah/Ape/tree/main/docs)
-
----
-
-**Built with Ape 🦍 - Because AI should execute deterministically, not approximately.**
+- [APE Language](https://github.com/Quynah/ape-lang)
+- [LangChain](https://python.langchain.com/)
+- [Documentation](https://github.com/Quynah/ape-lang/tree/main/packages/ape-langchain)
+- [Issues](https://github.com/Quynah/ape-lang/issues)

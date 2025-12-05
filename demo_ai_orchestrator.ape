@@ -1,0 +1,97 @@
+module ai_orchestrator
+
+import sys
+import math
+import io
+
+entity CalculationRequest:
+    operation: String
+    num1: Integer
+    num2: Integer
+    provider: String
+
+entity CalculationResult:
+    result: Integer
+    provider_used: String
+    validated: Boolean
+    timestamp: String
+
+entity ValidationReport:
+    total_requests: Integer
+    successful: Integer
+    failed: Integer
+    accuracy_rate: Integer
+
+task validate_calculation:
+    inputs:
+        operation: String
+        num1: Integer
+        num2: Integer
+        expected: Integer
+    outputs:
+        is_valid: Boolean
+        message: String
+    constraints:
+        - deterministic
+    steps:
+        - compute actual result based on operation
+        - compare with expected result
+        - return validation status and message
+
+task process_calculation_request:
+    inputs:
+        request: CalculationRequest
+    outputs:
+        result: CalculationResult
+    constraints:
+        - deterministic
+    steps:
+        - extract operation and numbers from request
+        - call appropriate math function
+        - validate result
+        - create result entity with metadata
+        - return result
+
+task batch_process_calculations:
+    inputs:
+        requests: List
+        validate_all: Boolean
+    outputs:
+        results: List
+        report: ValidationReport
+    constraints:
+        - deterministic
+    steps:
+        - iterate through all requests
+        - process each calculation
+        - validate if validate_all is true
+        - collect results
+        - generate validation report
+        - return results and report
+
+task generate_calculation_summary:
+    inputs:
+        results: List
+        format: String
+    outputs:
+        summary: String
+    constraints:
+        - deterministic
+    steps:
+        - aggregate all results
+        - format according to specified format
+        - include statistics
+        - return formatted summary
+
+flow ai_calculation_pipeline:
+    inputs:
+        raw_requests: List
+        output_format: String
+    outputs:
+        final_summary: String
+        full_report: ValidationReport
+    steps:
+        - parse raw_requests into CalculationRequest entities
+        - call batch_process_calculations with validation enabled
+        - call generate_calculation_summary with results
+        - return summary and validation report

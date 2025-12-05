@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.2 — Packaging Fix (2025-12-06)
+
+**Changes**
+- Updated documentation for new version
+- Removed outdated artifacts
+- Rebuilt distribution including all langchain/openai modules
+- No functional code changes — purely packaging and documentation updates
+
 ## v0.2.0 — Module System & Standard Library (2025-12-04)
 
 **Major Features**

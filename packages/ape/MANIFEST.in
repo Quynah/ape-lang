@@ -3,6 +3,10 @@ include LICENSE
 include CHANGELOG.md
 include pyproject.toml
 
+# Source code
+recursive-include ape *.py
+recursive-include ape *.json
+
 # Standard library
 recursive-include ape_std *.ape
 include ape_std/README.md

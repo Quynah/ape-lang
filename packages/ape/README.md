@@ -26,9 +26,9 @@ Ape is evolving into a complete language with its own module system, standard li
 
 ---
 
-## Status: v0.2.0
+## Status: v0.2.2
 
-Ape v0.2.0 is a **working prototype** with the following features complete:
+Ape v0.2.2 is a **working prototype** with the following features complete:
 
 ### ✅ Core Compiler
 - **Lexer & Parser** - Tokenizes and parses Ape source files into AST

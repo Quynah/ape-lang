@@ -1,0 +1,277 @@
+# ape-langchain
+
+LangChain integration for APE (AI Programmatic Execution).
+
+## What is ape-langchain?
+
+**ape-langchain** provides seamless integration between APE's deterministic functions and LangChain's agent framework. Convert APE tasks into LangChain tools with automatic validation and type safety.
+
+## Why ape-langchain?
+
+LangChain agents are powerful but need reliable tools:
+- Tool parameters must be validated
+- Type safety prevents runtime errors
+- Deterministic execution ensures consistency
+- Clear contracts between agent and tools
+
+**ape-langchain solves this** by wrapping APE functions as LangChain tools:
+
+```
+LangChain Agent → APE Tool → Validation → Deterministic execution ✓
+```
+
+## Installation
+
+```bash
+# Core package
+pip install ape-langchain
+
+# With LangChain
+pip install ape-langchain[langchain]
+
+# Development dependencies
+pip install ape-langchain[dev]
+```
+
+**Prerequisites:**
+- Python >= 3.11
+- ape-lang >= 0.2.0
+
+## Quick Start
+
+```python
+from langchain.llms import OpenAI
+from ape_langchain import create_langchain_tool
+
+# 1. Create Ape task file
+# calculator.ape:
+# task add:
+#     inputs: a: Integer, b: Integer
+#     outputs: sum: Integer
+#     constraints: deterministic
+#     steps: sum = a + b
+
+# 2. Create LangChain tool
+tool = create_langchain_tool("calculator.ape", "add")
+
+# 3. Use with LangChain
+from langchain.agents import initialize_agent, AgentType
+
+llm = OpenAI(temperature=0)
+agent = initialize_agent(
+    tools=[tool],
+    llm=llm,
+    agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# 4. Run agent
+result = agent.run("Add 5 and 3")
+print(result)  # "The sum of 5 and 3 is 8"
+```
+
+## API Reference
+
+### Schema Conversion
+
+**`ape_task_to_langchain_schema(task: ApeTask) -> dict`**
+
+Converts APE task to LangChain tool schema.
+
+```python
+from ape_langchain import ape_task_to_langchain_schema, ApeTask
+
+task = ApeTask(
+    name="calculate_tax",
+    inputs={"amount": "float", "rate": "float"},
+    output="float",
+    description="Calculate tax amount"
+)
+
+schema = ape_task_to_langchain_schema(task)
+```
+
+### Tool Creation
+
+**`create_langchain_tool(ape_file, function_name) -> StructuredTool`**
+
+Create a LangChain StructuredTool from an Ape file.
+
+```python
+from ape_langchain import create_langchain_tool
+
+tool = create_langchain_tool("math_ops.ape", "multiply")
+
+# Use in agent
+result = tool.run({"a": 4, "b": 7})
+```
+
+### Tool Wrapper
+
+**`ApeLangChainTool`**
+
+Low-level wrapper for more control.
+
+```python
+from ape_langchain import ApeLangChainTool
+
+ape_tool = ApeLangChainTool.from_ape_file("calc.ape", "divide")
+langchain_tool = ape_tool.as_structured_tool()
+
+# Execute directly
+result = ape_tool.execute(a=10, b=2)
+```
+
+### Chain Creation
+
+**`create_ape_chain(ape_file, llm) -> AgentExecutor`**
+
+Create a complete LangChain agent with all functions from an Ape file.
+
+```python
+from ape_langchain import create_ape_chain
+from langchain.llms import OpenAI
+
+llm = OpenAI(temperature=0)
+chain = create_ape_chain("calculator.ape", llm=llm)
+
+result = chain.run("Calculate 15 * 8 and then add 42")
+```
+
+## Features
+
+- ✅ **StructuredTool integration**: Full LangChain tool support
+- ✅ **Automatic validation**: Type and constraint checking
+- ✅ **Pydantic schemas**: Generated from APE types
+- ✅ **Multi-tool agents**: Load entire APE modules as tools
+- ✅ **Error handling**: Clear error propagation
+- ✅ **Type mapping**: APE types → Python types → Pydantic
+
+## Type Mapping
+
+| Ape Type | Python Type | LangChain Schema |
+|----------|-------------|------------------|
+| String   | str         | string           |
+| Integer  | int         | integer          |
+| Float    | float       | number           |
+| Boolean  | bool        | boolean          |
+| List     | list        | array            |
+| Dict     | dict        | object           |
+
+## Advanced Usage
+
+### Multiple Tools
+
+```python
+from ape_langchain import ApeLangChainTool
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import OpenAI
+
+# Load multiple functions
+add_tool = create_langchain_tool("calc.ape", "add")
+multiply_tool = create_langchain_tool("calc.ape", "multiply")
+divide_tool = create_langchain_tool("calc.ape", "divide")
+
+# Create agent
+llm = OpenAI(temperature=0)
+agent = initialize_agent(
+    tools=[add_tool, multiply_tool, divide_tool],
+    llm=llm,
+    agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION
+)
+
+result = agent.run("Calculate (5 + 3) * 2 / 4")
+```
+
+### Custom Descriptions
+
+```python
+tool = create_langchain_tool(
+    "calc.ape",
+    "add",
+    description="Adds two numbers together with validation"
+)
+```
+
+### With Memory
+
+```python
+from langchain.memory import ConversationBufferMemory
+from langchain.agents import initialize_agent
+
+memory = ConversationBufferMemory(memory_key="chat_history")
+agent = initialize_agent(
+    tools=[tool],
+    llm=llm,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    memory=memory
+)
+```
+
+## Examples
+
+### Basic Calculator Agent
+
+```python
+# calculator.ape
+task add:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - result = a + b
+
+task multiply:
+    inputs:
+        a: Integer
+        b: Integer
+    outputs:
+        result: Integer
+    constraints:
+        - deterministic
+    steps:
+        - result = a * b
+```
+
+```python
+# agent.py
+from ape_langchain import create_ape_chain
+from langchain.llms import OpenAI
+
+llm = OpenAI(temperature=0)
+agent = create_ape_chain("calculator.ape", llm=llm)
+
+agent.run("What is 7 times 8, then add 15?")
+# Agent uses multiply(7, 8) → 56, then add(56, 15) → 71
+```
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Format code
+black .
+
+# Type checking
+mypy src/
+```
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Links
+
+- [APE Language](https://github.com/Quynah/ape-lang)
+- [LangChain](https://python.langchain.com/)
+- [Documentation](https://github.com/Quynah/ape-lang/tree/main/packages/ape-langchain)
+- [Issues](https://github.com/Quynah/ape-lang/issues)

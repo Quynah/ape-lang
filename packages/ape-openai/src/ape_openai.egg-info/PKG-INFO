@@ -1,363 +1,239 @@
 Metadata-Version: 2.4
 Name: ape-openai
-Version: 0.1.1
-Summary: OpenAI integration for the Ape AI-first programming language
+Version: 0.1.0
+Summary: OpenAI integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
-Project-URL: Homepage, https://github.com/Quynah/ape-openai
-Project-URL: Repository, https://github.com/Quynah/ape-openai
-Project-URL: Documentation, https://github.com/Quynah/ape-openai#readme
-Project-URL: Issues, https://github.com/Quynah/ape-openai/issues
-Keywords: ape,openai,gpt,ai,llm,deterministic,function-calling
+Project-URL: Homepage, https://github.com/Quynah/ape-lang
+Project-URL: Documentation, https://github.com/Quynah/ape-lang/blob/main/packages/ape-openai/README.md
+Project-URL: Repository, https://github.com/Quynah/ape-lang
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
-Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.11
-Classifier: Programming Language :: Python :: 3.12
-Classifier: Topic :: Software Development :: Libraries :: Python Modules
-Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Libraries
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
-License-File: LICENSE
-Requires-Dist: ape-lang>=0.2.0
+Requires-Dist: ape-lang>=0.2.2
 Requires-Dist: typing-extensions>=4.0.0
+Provides-Extra: openai
+Requires-Dist: openai>=1.0.0; extra == "openai"
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
 Requires-Dist: black>=23.0.0; extra == "dev"
 Requires-Dist: mypy>=1.0.0; extra == "dev"
-Provides-Extra: openai
-Requires-Dist: openai>=1.0.0; extra == "openai"
-Dynamic: license-file
 
 # ape-openai
 
-**OpenAI function calling integration for the Ape AI-first programming language**
+OpenAI integration for APE (AI Programmatic Execution).
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+## What is ape-openai?
 
-## What is this?
+**ape-openai** bridges APE's deterministic validation layer with OpenAI's function calling API. It prevents hallucinations in function parameters by enforcing strict type checking and constraints before execution.
 
-`ape-openai` bridges the [Ape programming language](https://github.com/Quynah/Ape) with [OpenAI's function calling API](https://platform.openai.com/docs/guides/function-calling), enabling:
+## Why ape-openai?
 
-- **Deterministic function execution** - OpenAI decides *when* to call, Ape ensures *how* it executes
-- **Zero hallucination in parameters** - Ape validates all inputs before execution
-- **Automatic schema generation** - Convert Ape tasks to OpenAI function schemas
-- **Type-safe execution** - Constraints enforced at runtime
+OpenAI's function calling is powerful but can be unreliable:
+- Function parameters can be incorrectly formatted
+- Type mismatches cause runtime errors
+- Missing required fields break execution
+- No validation before calling your code
 
-## Why Use This?
+**ape-openai solves this** by adding APE as a validation layer:
 
-### The Problem: OpenAI Function Calling is Unreliable
-
-```python
-# Traditional approach - GPT can hallucinate parameters
-def calculate_price(base, tax):
-    return base * (1 + tax)  # What if tax = "high"? What if base = -100?
-
-tools = [{"type": "function", "function": {...}}]
-# GPT might send invalid JSON, wrong types, missing params
 ```
-
-### The Solution: Ape + OpenAI
-
-```python
-# Ape enforces determinism
-from ape_openai import ApeOpenAIFunction
-from openai import OpenAI
-
-client = OpenAI()
-
-# Wrap Ape task as OpenAI function
-func = ApeOpenAIFunction.from_ape_file("pricing.ape", "calculate_total")
-
-# Get OpenAI-compatible schema
-tools = [func.to_openai_tool()]
-
-# Chat with function calling
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Calculate total for $99 with 21% tax"}],
-    tools=tools
-)
-
-# Execute with Ape validation
-if response.choices[0].message.tool_calls:
-    tool_call = response.choices[0].message.tool_calls[0]
-    result = func.execute(tool_call.function.arguments)
-    # Result is validated, type-safe, deterministic
+OpenAI → JSON parameters → APE validation → Deterministic execution ✓
 ```
 
 ## Installation
 
 ```bash
+# Core package (schema conversion + execution)
 pip install ape-openai
+
+# With OpenAI SDK (for code generation)
+pip install ape-openai[openai]
+
+# Development dependencies
+pip install ape-openai[dev]
 ```
 
-With OpenAI support:
-```bash
-pip install ape-openai[openai]
-```
+**Prerequisites:**
+- Python >= 3.11
+- ape-lang >= 0.2.0
 
 ## Quick Start
 
-### 1. Write an Ape Task
+```python
+from openai import OpenAI
+from ape_openai import ApeOpenAIFunction
 
-Create `pricing.ape`:
+# 1. Create Ape task file
+# calculator.ape:
+# task add:
+#     inputs: a: Integer, b: Integer
+#     outputs: sum: Integer
+#     constraints: a > 0, b > 0
+#     steps: sum = a + b
 
-```ape
-module pricing
+# 2. Load as OpenAI function
+func = ApeOpenAIFunction.from_ape_file("calculator.ape", "add")
 
-task calculate_total
-  inputs:
-    base_price: String
-    tax_rate: String
-  outputs:
-    total: String
-  constraints:
-    - base_price must be numeric and positive
-    - tax_rate must be between 0 and 1
-  steps:
-    - Parse base_price as decimal
-    - Multiply by (1 + tax_rate)
-    - Return formatted total
+# 3. Get OpenAI function schema
+function_schema = func.to_openai_function()
+
+# 4. Use with OpenAI
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Add 5 and 3"}],
+    functions=[function_schema],
+    function_call="auto"
+)
+
+# 5. Execute with APE validation
+if response.choices[0].message.function_call:
+    func_call = response.choices[0].message.function_call
+    result = func.execute(func_call.arguments)
+    print(f"Result: {result}")  # 8
 ```
 
-### 2. Convert to OpenAI Function Schema
+## API Reference
+
+### Schema Conversion
+
+**`ape_task_to_openai_schema(task: ApeTask) -> dict`**
+
+Converts APE task to OpenAI function schema.
 
 ```python
-from ape import compile
-from ape_openai import ape_task_to_openai_schema
-from ape_openai.task import ApeTask
+from ape_openai import ape_task_to_openai_schema, ApeTask
 
-# Compile Ape module
-module = compile("pricing.ape")
+task = ApeTask(
+    name="calculate_tax",
+    inputs={"amount": "float", "rate": "float"},
+    output="float",
+    description="Calculate tax amount"
+)
 
-# Extract task
-task = ApeTask.from_module(module, "calculate_total")
-
-# Generate OpenAI schema
 schema = ape_task_to_openai_schema(task)
-
-print(schema)
 # {
-#     "type": "function",
-#     "function": {
-#         "name": "calculate_total",
-#         "description": "Deterministic Ape task: calculate_total",
-#         "parameters": {
-#             "type": "object",
-#             "properties": {
-#                 "base_price": {"type": "string"},
-#                 "tax_rate": {"type": "string"}
-#             },
-#             "required": ["base_price", "tax_rate"]
-#         }
+#     "name": "calculate_tax",
+#     "description": "Calculate tax amount",
+#     "parameters": {
+#         "type": "object",
+#         "properties": {
+#             "amount": {"type": "number"},
+#             "rate": {"type": "number"}
+#         },
+#         "required": ["amount", "rate"]
 #     }
 # }
 ```
 
-### 3. Execute OpenAI Function Calls with Ape
+### Execution
+
+**`execute_openai_call(module, function_name, arguments) -> Any`**
+
+Execute OpenAI function call with APE validation.
 
 ```python
+from ape import compile
 from ape_openai import execute_openai_call
-import json
-
-# Simulate OpenAI function call response
-arguments_json = '{"base_price": "99.99", "tax_rate": "0.21"}'
-
-# Execute with Ape validation
-result = execute_openai_call(
-    module=module,
-    function_name="calculate_total",
-    arguments_json=arguments_json
-)
-
-print(result)  # "121.00" - validated and deterministic
-```
-
-### 4. Full OpenAI Integration Example
-
-```python
-from openai import OpenAI
-from ape import compile
-from ape_openai import ApeOpenAIFunction
-
-# Initialize OpenAI client
-client = OpenAI(api_key="your-api-key")
-
-# Create Ape-backed function
-pricing_func = ApeOpenAIFunction.from_ape_file(
-    "pricing.ape",
-    "calculate_total",
-    description="Calculate total price including tax"
-)
-
-# Chat with function calling
-messages = [
-    {"role": "user", "content": "What's the total for $149.99 with 21% tax?"}
-]
-
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=messages,
-    tools=[pricing_func.to_openai_tool()],
-    tool_choice="auto"
-)
-
-# Handle function call
-message = response.choices[0].message
-if message.tool_calls:
-    for tool_call in message.tool_calls:
-        if tool_call.function.name == "calculate_total":
-            # Execute with Ape - validated and deterministic
-            result = pricing_func.execute(tool_call.function.arguments)
-            
-            # Add result to conversation
-            messages.append(message)
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": str(result)
-            })
-            
-            # Get final response
-            final_response = client.chat.completions.create(
-                model="gpt-4",
-                messages=messages
-            )
-            
-            print(final_response.choices[0].message.content)
-```
-
-## API Overview
-
-### `ape_task_to_openai_schema(task: ApeTask) -> dict`
-
-Convert an Ape task to OpenAI function schema format.
-
-```python
-from ape import compile
-from ape_openai import ape_task_to_openai_schema
-from ape_openai.task import ApeTask
 
 module = compile("calculator.ape")
-task = ApeTask.from_module(module, "add")
-schema = ape_task_to_openai_schema(task)
+result = execute_openai_call(module, "add", '{"a": 5, "b": 3}')
 ```
 
-### `execute_openai_call(module, function_name, arguments_json) -> Any`
+### High-Level Wrapper
 
-Execute an OpenAI function call with Ape validation.
+**`ApeOpenAIFunction`**
 
-```python
-from ape_openai import execute_openai_call
-
-result = execute_openai_call(
-    module=compiled_module,
-    function_name="add",
-    arguments_json='{"a": "5", "b": "3"}'
-)
-```
-
-### `ApeOpenAIFunction` (High-level Helper)
-
-Convenient wrapper combining schema generation and execution.
+Complete integration wrapper.
 
 ```python
-from ape_openai import ApeOpenAIFunction
+func = ApeOpenAIFunction.from_ape_file("calc.ape", "multiply")
 
-func = ApeOpenAIFunction.from_ape_file("module.ape", "task_name")
+# Get schema
+schema = func.to_openai_function()
 
-# Get OpenAI tool definition
-tool = func.to_openai_tool()
-
-# Execute function call
-result = func.execute(arguments_json)
-```
-
-### `generate_ape_from_nl(prompt, model="gpt-4") -> str` (Experimental)
-
-Generate Ape code from natural language description.
-
-```python
-from ape_openai import generate_ape_from_nl
-
-ape_code = generate_ape_from_nl(
-    "Create a task that calculates compound interest"
-)
-print(ape_code)
-# Returns Ape code as string
+# Execute
+result = func.execute({"a": 4, "b": 7})
 ```
 
 ## Features
 
-- ✅ **Automatic schema generation** - Ape tasks → OpenAI function schemas
-- ✅ **Type-safe execution** - All inputs validated before execution
-- ✅ **Zero hallucination** - Invalid parameters rejected instantly
-- ✅ **JSON error handling** - Graceful handling of malformed arguments
-- ✅ **OpenAI compatible** - Works with GPT-4, GPT-3.5, and fine-tuned models
-- ✅ **Streaming support** - Compatible with OpenAI streaming responses
+- ✅ **Schema conversion**: APE → OpenAI function format
+- ✅ **Type validation**: Strict parameter checking
+- ✅ **Error handling**: Clear error messages
+- ✅ **Code generation**: Natural language → APE (experimental)
+- ✅ **Full type support**: String, Integer, Float, Boolean, List, Dict
 
 ## Type Mapping
 
-Ape types are mapped to OpenAI JSON Schema types:
-
 | Ape Type | OpenAI Type |
 |----------|-------------|
-| String   | "string"    |
-| Integer  | "integer"   |
-| Float    | "number"    |
-| Boolean  | "boolean"   |
-| List     | "array"     |
-| Any      | "string" (fallback) |
+| String   | string      |
+| Integer  | integer     |
+| Float    | number      |
+| Boolean  | boolean     |
+| List     | array       |
+| Dict     | object      |
 
-## Error Handling
+## Advanced Usage
+
+### Code Generation
+
+Generate APE code from natural language:
 
 ```python
-from ape_openai import execute_openai_call, ApeExecutionError
+from ape_openai import generate_ape_from_nl
 
-try:
-    result = execute_openai_call(module, "calculate", '{"invalid": "params"}')
-except ApeExecutionError as e:
-    print(f"Execution failed: {e}")
-    # Handle gracefully
+code = generate_ape_from_nl(
+    "Create a function that calculates compound interest",
+    model="gpt-4o"
+)
+print(code)
 ```
 
-## Requirements
+### Error Handling
 
-- Python 3.11+
-- ape-lang (installed automatically)
-- openai >= 1.0.0 (optional, for OpenAI API calls)
+```python
+from ape_openai import ApeOpenAIFunction
+from ape import ApeExecutionError
 
-## Development Status
+func = ApeOpenAIFunction.from_ape_file("calc.ape", "divide")
 
-**v0.1.0** - Initial release
-
-Currently supports:
-- Function schema generation
-- Function call execution
-- Basic type mapping
-- Error handling
-
-Roadmap:
-- Advanced type system (nested objects, arrays)
-- Streaming function call support
-- Multi-function orchestration
-- Cost tracking and optimization
+try:
+    result = func.execute({"a": 10, "b": 0})
+except ApeExecutionError as e:
+    print(f"Execution failed: {e}")
+```
 
 ## Examples
 
-See `examples/` directory for:
+See the `examples/` directory for complete examples:
 - Basic function calling
-- Multi-turn conversations
+- Multi-function conversations
 - Error handling patterns
-- Streaming responses
+- Code generation workflows
 
-## Contributing
+## Development
 
-Contributions welcome! See the [main Ape repository](https://github.com/Quynah/Ape) for guidelines.
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Format code
+black .
+
+# Type checking
+mypy src/
+```
 
 ## License
 
@@ -365,10 +241,6 @@ MIT License - see LICENSE file for details.
 
 ## Links
 
-- [Ape Language](https://github.com/Quynah/Ape)
-- [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling)
-- [Documentation](https://github.com/Quynah/Ape/tree/main/docs)
-
----
-
-**Built with Ape 🦍 - Making AI function calls deterministic, not approximate.**
+- [APE Language](https://github.com/Quynah/ape-lang)
+- [Documentation](https://github.com/Quynah/ape-lang/tree/main/packages/ape-openai)
+- [Issues](https://github.com/Quynah/ape-lang/issues)

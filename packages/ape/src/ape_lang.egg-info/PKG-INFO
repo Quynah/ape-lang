@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-lang
-Version: 0.2.1
+Version: 0.2.2
 Summary: A deterministic AI-first programming language for unambiguous human-AI collaboration
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
@@ -45,9 +45,9 @@ Ape is evolving into a complete language with its own module system, standard li
 
 ---
 
-## Status: v0.2.0
+## Status: v0.2.2
 
-Ape v0.2.0 is a **working prototype** with the following features complete:
+Ape v0.2.2 is a **working prototype** with the following features complete:
 
 ### ✅ Core Compiler
 - **Lexer & Parser** - Tokenizes and parses Ape source files into AST

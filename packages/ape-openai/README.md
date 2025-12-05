@@ -1,0 +1,220 @@
+# ape-openai
+
+OpenAI integration for APE (AI Programmatic Execution).
+
+## What is ape-openai?
+
+**ape-openai** bridges APE's deterministic validation layer with OpenAI's function calling API. It prevents hallucinations in function parameters by enforcing strict type checking and constraints before execution.
+
+## Why ape-openai?
+
+OpenAI's function calling is powerful but can be unreliable:
+- Function parameters can be incorrectly formatted
+- Type mismatches cause runtime errors
+- Missing required fields break execution
+- No validation before calling your code
+
+**ape-openai solves this** by adding APE as a validation layer:
+
+```
+OpenAI → JSON parameters → APE validation → Deterministic execution ✓
+```
+
+## Installation
+
+```bash
+# Core package (schema conversion + execution)
+pip install ape-openai
+
+# With OpenAI SDK (for code generation)
+pip install ape-openai[openai]
+
+# Development dependencies
+pip install ape-openai[dev]
+```
+
+**Prerequisites:**
+- Python >= 3.11
+- ape-lang >= 0.2.0
+
+## Quick Start
+
+```python
+from openai import OpenAI
+from ape_openai import ApeOpenAIFunction
+
+# 1. Create Ape task file
+# calculator.ape:
+# task add:
+#     inputs: a: Integer, b: Integer
+#     outputs: sum: Integer
+#     constraints: a > 0, b > 0
+#     steps: sum = a + b
+
+# 2. Load as OpenAI function
+func = ApeOpenAIFunction.from_ape_file("calculator.ape", "add")
+
+# 3. Get OpenAI function schema
+function_schema = func.to_openai_function()
+
+# 4. Use with OpenAI
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Add 5 and 3"}],
+    functions=[function_schema],
+    function_call="auto"
+)
+
+# 5. Execute with APE validation
+if response.choices[0].message.function_call:
+    func_call = response.choices[0].message.function_call
+    result = func.execute(func_call.arguments)
+    print(f"Result: {result}")  # 8
+```
+
+## API Reference
+
+### Schema Conversion
+
+**`ape_task_to_openai_schema(task: ApeTask) -> dict`**
+
+Converts APE task to OpenAI function schema.
+
+```python
+from ape_openai import ape_task_to_openai_schema, ApeTask
+
+task = ApeTask(
+    name="calculate_tax",
+    inputs={"amount": "float", "rate": "float"},
+    output="float",
+    description="Calculate tax amount"
+)
+
+schema = ape_task_to_openai_schema(task)
+# {
+#     "name": "calculate_tax",
+#     "description": "Calculate tax amount",
+#     "parameters": {
+#         "type": "object",
+#         "properties": {
+#             "amount": {"type": "number"},
+#             "rate": {"type": "number"}
+#         },
+#         "required": ["amount", "rate"]
+#     }
+# }
+```
+
+### Execution
+
+**`execute_openai_call(module, function_name, arguments) -> Any`**
+
+Execute OpenAI function call with APE validation.
+
+```python
+from ape import compile
+from ape_openai import execute_openai_call
+
+module = compile("calculator.ape")
+result = execute_openai_call(module, "add", '{"a": 5, "b": 3}')
+```
+
+### High-Level Wrapper
+
+**`ApeOpenAIFunction`**
+
+Complete integration wrapper.
+
+```python
+func = ApeOpenAIFunction.from_ape_file("calc.ape", "multiply")
+
+# Get schema
+schema = func.to_openai_function()
+
+# Execute
+result = func.execute({"a": 4, "b": 7})
+```
+
+## Features
+
+- ✅ **Schema conversion**: APE → OpenAI function format
+- ✅ **Type validation**: Strict parameter checking
+- ✅ **Error handling**: Clear error messages
+- ✅ **Code generation**: Natural language → APE (experimental)
+- ✅ **Full type support**: String, Integer, Float, Boolean, List, Dict
+
+## Type Mapping
+
+| Ape Type | OpenAI Type |
+|----------|-------------|
+| String   | string      |
+| Integer  | integer     |
+| Float    | number      |
+| Boolean  | boolean     |
+| List     | array       |
+| Dict     | object      |
+
+## Advanced Usage
+
+### Code Generation
+
+Generate APE code from natural language:
+
+```python
+from ape_openai import generate_ape_from_nl
+
+code = generate_ape_from_nl(
+    "Create a function that calculates compound interest",
+    model="gpt-4o"
+)
+print(code)
+```
+
+### Error Handling
+
+```python
+from ape_openai import ApeOpenAIFunction
+from ape import ApeExecutionError
+
+func = ApeOpenAIFunction.from_ape_file("calc.ape", "divide")
+
+try:
+    result = func.execute({"a": 10, "b": 0})
+except ApeExecutionError as e:
+    print(f"Execution failed: {e}")
+```
+
+## Examples
+
+See the `examples/` directory for complete examples:
+- Basic function calling
+- Multi-function conversations
+- Error handling patterns
+- Code generation workflows
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Format code
+black .
+
+# Type checking
+mypy src/
+```
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Links
+
+- [APE Language](https://github.com/Quynah/ape-lang)
+- [Documentation](https://github.com/Quynah/ape-lang/tree/main/packages/ape-openai)
+- [Issues](https://github.com/Quynah/ape-lang/issues)

@@ -1,5 +1,4 @@
-ape-lang>=0.2.0
-langchain>=0.1.0
+ape-lang>=0.2.2
 typing-extensions>=4.0.0
 
 [dev]
@@ -7,3 +6,7 @@ pytest>=7.0.0
 pytest-cov>=4.0.0
 black>=23.0.0
 mypy>=1.0.0
+
+[langchain]
+langchain>=0.1.0
+langchain-core>=0.1.0

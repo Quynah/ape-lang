@@ -1,4 +1,4 @@
-ape-lang>=0.2.0
+ape-lang>=0.2.2
 typing-extensions>=4.0.0
 
 [anthropic]
