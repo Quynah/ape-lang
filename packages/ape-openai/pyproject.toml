@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ape-openai"
-version = "0.1.0"
+version = "1.0.0"
 description = "OpenAI integration for APE (AI Programmatic Execution)"
 readme = "README.md"
 license = {text = "MIT"}
@@ -21,7 +21,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ape-lang>=0.2.2",
+    "ape-lang>=1.0.0",
     "typing-extensions>=4.0.0",
 ]
 

@@ -1,0 +1,36 @@
+# Scenario: APE + Anthropic Claude Integration
+# EXPECT: "safe"
+
+# Problem: Safety validation layer for Claude requests
+# APE demonstrates: Three-tier safety classification with domain sensitivity
+
+# Safety tiers:
+# - "safe": All checks pass, proceed
+# - "review": Ambiguous, needs human review
+# - "unsafe": Blocked immediately
+
+task main:
+    inputs:
+        is_harmful_intent: Boolean
+        is_policy_compliant: Boolean
+        is_sensitive_domain: Boolean
+    steps:
+        - set safety_level to "review"
+        
+        # Immediate block for harmful intent (highest priority)
+        if is_harmful_intent:
+            - set safety_level to "unsafe"
+        
+        # Only process safe paths if not harmful
+        if is_harmful_intent == false:
+            # Safe path: compliant and not sensitive
+            if is_policy_compliant:
+                if is_sensitive_domain == false:
+                    - set safety_level to "safe"
+            
+            # Sensitive domains require extra review even if compliant
+            if is_sensitive_domain:
+                if is_policy_compliant:
+                    - set safety_level to "review"
+        
+        - return safety_level

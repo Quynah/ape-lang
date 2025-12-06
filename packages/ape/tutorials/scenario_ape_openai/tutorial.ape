@@ -1,0 +1,33 @@
+# Scenario: APE + OpenAI Integration
+# EXPECT: "allowed"
+
+# Problem: Request validation for OpenAI GPT API calls
+# APE demonstrates: Three-tier request type validation
+
+# Request types:
+# - Classification: Safe, read-only operation
+# - Chat: Allowed by default, monitored
+# - Code execution: Requires explicit permission
+
+task main:
+    inputs:
+        is_classify: Boolean
+        is_execute_code: Boolean
+        is_chat: Boolean
+    steps:
+        - set decision to "allowed"
+        
+        # Classification requests are always safe
+        if is_classify:
+            - set decision to "allowed"
+        
+        # Block code execution unless explicitly allowed
+        if is_execute_code:
+            - set decision to "blocked"
+        
+        # Chat requests blocked if code execution is attempted
+        if is_chat:
+            if is_execute_code:
+                - set decision to "blocked"
+        
+        - return decision

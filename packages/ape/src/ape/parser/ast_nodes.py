@@ -92,6 +92,65 @@ class StepNode(ASTNode):
 
 
 @dataclass
+class ExpressionNode(ASTNode):
+    """
+    Expression node for conditions and computations.
+    Can be a literal, identifier, or operation.
+    """
+    value: Any = None  # For literals
+    identifier: Optional[str] = None  # For variable references
+    operator: Optional[str] = None  # For operations: +, -, <, >, ==, etc.
+    left: Optional['ExpressionNode'] = None
+    right: Optional['ExpressionNode'] = None
+
+
+@dataclass
+class IfNode(ASTNode):
+    """
+    If/else if/else control flow node.
+    
+    Grammar:
+        if <condition>:
+            <block>
+        else if <condition>:
+            <block>
+        else:
+            <block>
+    """
+    condition: ExpressionNode = None
+    body: List[ASTNode] = field(default_factory=list)
+    elif_blocks: List[tuple[ExpressionNode, List[ASTNode]]] = field(default_factory=list)
+    else_body: Optional[List[ASTNode]] = None
+
+
+@dataclass
+class WhileNode(ASTNode):
+    """
+    While loop control flow node.
+    
+    Grammar:
+        while <condition>:
+            <block>
+    """
+    condition: ExpressionNode = None
+    body: List[ASTNode] = field(default_factory=list)
+
+
+@dataclass
+class ForNode(ASTNode):
+    """
+    For loop control flow node.
+    
+    Grammar:
+        for <identifier> in <iterable>:
+            <block>
+    """
+    iterator: str = ""  # Variable name
+    iterable: ExpressionNode = None  # Expression that evaluates to iterable
+    body: List[ASTNode] = field(default_factory=list)
+
+
+@dataclass
 class EntityDefNode(ASTNode):
     """Entity definition"""
     name: str = ""
@@ -173,3 +232,60 @@ class ProjectNode(ASTNode):
     """Project root node (collection of modules)"""
     name: str = ""
     modules: List[ModuleNode] = field(default_factory=list)
+
+
+# ============================================================================
+# Exception Handling Nodes (v1.0.0 scaffold)
+# ============================================================================
+
+@dataclass
+class TryNode(ASTNode):
+    """
+    Try-catch-finally exception handling construct.
+    
+    Example:
+        try:
+            risky_operation()
+        catch Error as e:
+            handle_error(e)
+        finally:
+            cleanup()
+    
+    Author: David Van Aelst
+    Status: v1.0.0 scaffold - implementation pending
+    """
+    try_block: List[ASTNode] = field(default_factory=list)
+    catch_clauses: List['CatchNode'] = field(default_factory=list)
+    finally_block: Optional[List[ASTNode]] = None
+
+
+@dataclass
+class CatchNode(ASTNode):
+    """
+    Catch clause within a try block.
+    
+    Example:
+        catch TypeError as e:
+            print("Type error: " + e.message)
+    
+    Author: David Van Aelst
+    Status: v1.0.0 scaffold - implementation pending
+    """
+    error_type: Optional[str] = None  # None means catch all
+    variable_name: Optional[str] = None
+    body: List[ASTNode] = field(default_factory=list)
+
+
+@dataclass
+class RaiseNode(ASTNode):
+    """
+    Raise an error/exception.
+    
+    Example:
+        raise Error("Something went wrong")
+    
+    Author: David Van Aelst
+    Status: v1.0.0 scaffold - implementation pending
+    """
+    error_type: str = "Error"
+    message: Optional[ASTNode] = None  # Expression node

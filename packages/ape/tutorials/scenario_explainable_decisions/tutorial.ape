@@ -1,0 +1,31 @@
+# Scenario: Explainable Decisions
+# EXPECT: "medium"
+
+# Problem: Transparent, human-readable decision rating system
+# APE demonstrates: Four-tier risk classification with threshold logic
+
+# Rating tiers:
+# - "critical": score >= 80 (immediate attention)
+# - "high": score >= 60 (needs review)
+# - "medium": score >= 30 (monitor)
+# - "low": score < 30 (safe)
+
+task main:
+    inputs:
+        score: Integer
+    steps:
+        - set rating to "low"
+        
+        # Medium tier: 30-59
+        if score >= 30:
+            - set rating to "medium"
+        
+        # High tier: 60-79
+        if score >= 60:
+            - set rating to "high"
+        
+        # Critical tier: 80+
+        if score >= 80:
+            - set rating to "critical"
+        
+        - return rating

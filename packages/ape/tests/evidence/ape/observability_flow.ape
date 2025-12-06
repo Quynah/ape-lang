@@ -1,0 +1,12 @@
+# Observability Flow
+# Demonstrates: explainable control flow, traceability
+# Every decision point is recorded and can be explained
+
+task main:
+    steps:
+        - set x to 5
+        - set y to 10
+        if x < y:
+            - set z to y - x
+        else:
+            - set z to x - y

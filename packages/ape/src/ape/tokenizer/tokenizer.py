@@ -34,6 +34,13 @@ class TokenType(Enum):
     IMPORT = auto()
     FROM = auto()
     
+    # Control flow keywords
+    IF = auto()
+    ELSE = auto()
+    WHILE = auto()
+    FOR = auto()
+    IN = auto()
+    
     # Literals
     IDENTIFIER = auto()
     STRING = auto()
@@ -47,6 +54,19 @@ class TokenType(Enum):
     DASH = auto()
     PIPE = auto()
     ARROW = auto()
+    
+    # Comparison and arithmetic operators
+    LT = auto()           # <
+    GT = auto()           # >
+    LE = auto()           # <=
+    GE = auto()           # >=
+    EQ = auto()           # ==
+    NE = auto()           # !=
+    PLUS = auto()         # +
+    MINUS = auto()        # - (separate from DASH for clarity)
+    STAR = auto()         # *
+    SLASH = auto()        # /
+    PERCENT = auto()      # %
     
     # Structure
     INDENT = auto()
@@ -103,6 +123,11 @@ class Tokenizer:
         'rules': TokenType.RULES,
         'import': TokenType.IMPORT,
         'from': TokenType.FROM,
+        'if': TokenType.IF,
+        'else': TokenType.ELSE,
+        'while': TokenType.WHILE,
+        'for': TokenType.FOR,
+        'in': TokenType.IN,
         'true': TokenType.BOOLEAN,
         'false': TokenType.BOOLEAN,
         'True': TokenType.BOOLEAN,
@@ -114,8 +139,12 @@ class Tokenizer:
         # Comments
         (r'#[^\n]*', TokenType.COMMENT),
         
-        # Multi-character operators
+        # Multi-character operators (must come before single-character ones)
         (r'->', TokenType.ARROW),
+        (r'<=', TokenType.LE),
+        (r'>=', TokenType.GE),
+        (r'==', TokenType.EQ),
+        (r'!=', TokenType.NE),
         
         # String literals (single or double quoted)
         (r'"(?:[^"\\]|\\.)*"', TokenType.STRING),
@@ -134,6 +163,14 @@ class Tokenizer:
         (r'\.', TokenType.DOT),
         (r'-', TokenType.DASH),
         (r'\|', TokenType.PIPE),
+        
+        # Single-character operators
+        (r'<', TokenType.LT),
+        (r'>', TokenType.GT),
+        (r'\+', TokenType.PLUS),
+        (r'\*', TokenType.STAR),
+        (r'/', TokenType.SLASH),
+        (r'%', TokenType.PERCENT),
     ]
     
     def __init__(self, source: str, filename: str = "<unknown>"):

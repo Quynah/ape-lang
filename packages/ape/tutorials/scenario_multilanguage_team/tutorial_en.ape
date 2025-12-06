@@ -1,0 +1,35 @@
+# Scenario: Multilanguage Team — English
+# EXPECT: "approved"
+
+# Problem: Team members speak different languages
+# APE demonstrates: Multi-factor approval with manual override
+
+# Approval factors:
+# - Base: score >= threshold
+# - Flagged items require manual override
+# - Manual override bypasses automatic rejection
+
+task main:
+    inputs:
+        score: Integer
+        threshold: Integer
+        is_flagged: Boolean
+        manual_override: Boolean
+    steps:
+        - set result to "rejected"
+        
+        # Automatic approval if score meets threshold and not flagged
+        if score >= threshold:
+            if is_flagged == false:
+                - set result to "approved"
+        
+        # Flagged items can be approved with manual override
+        if is_flagged:
+            if manual_override:
+                - set result to "approved"
+        
+        # Manual override can force approval regardless of score
+        if manual_override:
+            - set result to "approved"
+        
+        - return result

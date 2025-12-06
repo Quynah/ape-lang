@@ -1,0 +1,50 @@
+# Scenario: Risk Classification with Control Flow
+# EXPECT: "high"
+
+# Problem: Classify user risk level based on multiple factors
+# APE demonstrates: Three-tier risk classification with account age factor
+
+# Risk factors:
+# - Admin privileges: +30 points (access risk)
+# - Inactive account: +40 points (abandonment risk)
+# - Low credit score: +30 points (financial risk)
+# - New account: +20 points (trust risk)
+
+# Risk tiers:
+# - "high": score >= 80 (immediate review)
+# - "medium": score >= 50 (monitoring)
+# - "low": score < 50 (normal processing)
+
+task main:
+    inputs:
+        is_admin: Boolean
+        is_active: Boolean
+        credit_score: Integer
+        account_age_days: Integer
+    steps:
+        - set score to 0
+        
+        # Admin access adds risk
+        if is_admin:
+            - set score to score + 30
+        
+        # Inactive accounts are risky
+        if is_active == false:
+            - set score to score + 40
+        
+        # Low credit score adds risk
+        if credit_score < 500:
+            - set score to score + 30
+        
+        # New accounts need extra verification
+        if account_age_days < 30:
+            - set score to score + 20
+        
+        # Classify risk tier
+        - set risk to "low"
+        if score >= 50:
+            - set risk to "medium"
+        if score >= 80:
+            - set risk to "high"
+        
+        - return risk

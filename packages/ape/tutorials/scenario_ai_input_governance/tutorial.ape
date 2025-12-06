@@ -1,0 +1,34 @@
+# Scenario: AI Input Governance
+# EXPECT: "allowed"
+
+# Problem: Validate AI request safety before execution
+# APE demonstrates: Multi-factor policy validation with clear allow/deny paths
+
+# Decision factors:
+# 1. Intent safety (harmful vs benign)
+# 2. Request type (mutation vs read-only)
+# 3. User privileges (EU data protection compliance)
+
+task main:
+    inputs:
+        is_safe_intent: Boolean
+        is_mutation_request: Boolean
+        is_eu_user: Boolean
+    steps:
+        - set decision to "allowed"
+        
+        # Block harmful intent immediately
+        if is_safe_intent == false:
+            - set decision to "blocked"
+        
+        # Block mutations for EU users (GDPR compliance)
+        if is_eu_user:
+            if is_mutation_request:
+                - set decision to "blocked"
+        
+        # Block all mutations if intent is unclear
+        if is_mutation_request:
+            if is_safe_intent == false:
+                - set decision to "blocked"
+        
+        - return decision

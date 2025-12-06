@@ -1,0 +1,38 @@
+# Scenario: Dry-Run Auditing
+# EXPECT: 55
+
+# Problem: Dry-run mode for auditing computations before real execution
+# APE demonstrates: Multi-input scoring with high-risk bonus calculation
+
+# Scoring logic:
+# - Base score: sum of v1 + v2 + v3
+# - High-risk bonus: Add v4 if base score exceeds threshold
+# - Return final audit score
+
+task main:
+    inputs:
+        v1: Integer
+        v2: Integer
+        v3: Integer
+        v4: Integer
+    steps:
+        - set total to 0
+        
+        # Add v1 if above threshold
+        if v1 > 15:
+            - set total to total + v1
+        
+        # Add v2 if above threshold
+        if v2 > 15:
+            - set total to total + v2
+        
+        # Add v3 if above threshold
+        if v3 > 15:
+            - set total to total + v3
+        
+        # High-risk bonus: add v4 if base score > 50
+        if total > 50:
+            if v4 > 0:
+                - set total to total + v4
+        
+        - return total

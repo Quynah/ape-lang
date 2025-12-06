@@ -1,0 +1,16 @@
+# Dry-Run Governance
+# Demonstrates: deciding without mutating, safe analysis
+
+task main:
+    inputs:
+        v1: Integer
+        v2: Integer
+    steps:
+        - set total to 0
+        if v1 > 15:
+            - set total to total + v1
+        if v2 > 15:
+            - set total to total + v2
+
+
+

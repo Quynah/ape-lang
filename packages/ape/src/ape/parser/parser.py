@@ -317,7 +317,24 @@ class Parser:
         return steps
     
     def _parse_step(self) -> StepNode:
-        """Parse a single step"""
+        """
+        Parse a single step or control flow statement.
+        
+        Can be:
+        - A dash step (- call x with y)
+        - An if statement
+        - A while loop  
+        - A for loop
+        """
+        # Check for control flow (no dash)
+        if self._match(TokenType.IF):
+            return self._parse_if()
+        elif self._match(TokenType.WHILE):
+            return self._parse_while()
+        elif self._match(TokenType.FOR):
+            return self._parse_for()
+        
+        # Regular step with dash
         token = self._expect(TokenType.DASH)
         node = StepNode(line=token.line, column=token.column)
         
@@ -341,6 +358,215 @@ class Parser:
             self._expect(TokenType.DEDENT)
         
         return node
+    
+    def _parse_if(self) -> IfNode:
+        """
+        Parse if/else if/else statement.
+        
+        Grammar:
+            if <condition>:
+                <block>
+            else if <condition>:
+                <block>
+            else:
+                <block>
+        """
+        token = self._expect(TokenType.IF)
+        node = IfNode(line=token.line, column=token.column)
+        
+        # Parse main condition
+        node.condition = self._parse_expression()
+        self._expect(TokenType.COLON)
+        self._expect(TokenType.NEWLINE)
+        
+        # Parse body
+        node.body = self._parse_block()
+        
+        # Parse else if blocks
+        while self._match(TokenType.ELSE):
+            # Peek ahead to see if this is "else if" or just "else"
+            next_token = self._peek(1)
+            if next_token and next_token.type == TokenType.IF:
+                self._advance()  # consume 'else'
+                self._advance()  # consume 'if'
+                
+                # Parse elif condition and body
+                elif_condition = self._parse_expression()
+                self._expect(TokenType.COLON)
+                self._expect(TokenType.NEWLINE)
+                elif_body = self._parse_block()
+                
+                node.elif_blocks.append((elif_condition, elif_body))
+            else:
+                # Just 'else' - break to parse else block below
+                break
+        
+        # Parse else block (if present)
+        if self._match(TokenType.ELSE):
+            self._advance()  # consume 'else'
+            self._expect(TokenType.COLON)
+            self._expect(TokenType.NEWLINE)
+            node.else_body = self._parse_block()
+        
+        return node
+    
+    def _parse_while(self) -> WhileNode:
+        """
+        Parse while loop.
+        
+        Grammar:
+            while <condition>:
+                <block>
+        """
+        token = self._expect(TokenType.WHILE)
+        node = WhileNode(line=token.line, column=token.column)
+        
+        # Parse condition
+        node.condition = self._parse_expression()
+        self._expect(TokenType.COLON)
+        self._expect(TokenType.NEWLINE)
+        
+        # Parse body
+        node.body = self._parse_block()
+        
+        return node
+    
+    def _parse_for(self) -> ForNode:
+        """
+        Parse for loop.
+        
+        Grammar:
+            for <identifier> in <iterable>:
+                <block>
+        """
+        token = self._expect(TokenType.FOR)
+        node = ForNode(line=token.line, column=token.column)
+        
+        # Parse iterator variable
+        node.iterator = self._expect(TokenType.IDENTIFIER).value
+        
+        # Expect 'in'
+        self._expect(TokenType.IN)
+        
+        # Parse iterable expression
+        node.iterable = self._parse_expression()
+        
+        self._expect(TokenType.COLON)
+        self._expect(TokenType.NEWLINE)
+        
+        # Parse body
+        node.body = self._parse_block()
+        
+        return node
+    
+    def _parse_block(self) -> List[ASTNode]:
+        """
+        Parse an indented block of statements.
+        
+        Returns:
+            List of AST nodes (steps or control flow)
+        """
+        self._expect(TokenType.INDENT)
+        
+        statements = []
+        while not self._match(TokenType.DEDENT):
+            self._skip_newlines()
+            if self._match(TokenType.DEDENT):
+                break
+            
+            statements.append(self._parse_step())
+        
+        self._expect(TokenType.DEDENT)
+        return statements
+    
+    def _parse_expression(self) -> ExpressionNode:
+        """
+        Parse an expression (condition, arithmetic, etc.).
+        
+        For now, this is a simplified parser that reads tokens until :
+        In a full implementation, this would be a proper expression parser
+        with operator precedence, etc.
+        
+        Returns:
+            ExpressionNode
+        """
+        token = self.current_token
+        node = ExpressionNode(line=token.line, column=token.column)
+        
+        # Simple expression parsing: read until we hit a colon
+        # This is a placeholder - a real implementation would parse
+        # operators, precedence, etc.
+        
+        # For now, just handle simple cases:
+        # - identifiers (variables)
+        # - literals (numbers, strings, booleans)
+        # - simple binary operations (x < 10, x == 5, etc.)
+        
+        if self._match(TokenType.IDENTIFIER):
+            identifier = self._advance().value
+            
+            # Check for binary operator
+            if self._match_expression_operator():
+                op_token = self._advance()
+                # Map token type to operator string
+                op_map = {
+                    TokenType.LT: '<',
+                    TokenType.GT: '>',
+                    TokenType.LE: '<=',
+                    TokenType.GE: '>=',
+                    TokenType.EQ: '==',
+                    TokenType.NE: '!=',
+                    TokenType.PLUS: '+',
+                    TokenType.DASH: '-',
+                    TokenType.STAR: '*',
+                    TokenType.SLASH: '/',
+                    TokenType.PERCENT: '%',
+                }
+                node.operator = op_map.get(op_token.type, op_token.value)
+                node.left = ExpressionNode(identifier=identifier, line=token.line, column=token.column)
+                node.right = self._parse_primary_expression()
+            else:
+                node.identifier = identifier
+        else:
+            # Primary expression (literal or parenthesized expression)
+            node = self._parse_primary_expression()
+        
+        return node
+    
+    def _parse_primary_expression(self) -> ExpressionNode:
+        """Parse a primary expression (literal, identifier, or grouped expression)"""
+        token = self.current_token
+        node = ExpressionNode(line=token.line, column=token.column)
+        
+        if self._match(TokenType.NUMBER):
+            value_str = self._advance().value
+            # Convert to int or float
+            node.value = float(value_str) if '.' in value_str else int(value_str)
+        elif self._match(TokenType.STRING):
+            # Remove quotes from string
+            value = self._advance().value
+            node.value = value[1:-1]  # Strip quotes
+        elif self._match(TokenType.BOOLEAN):
+            value = self._advance().value
+            node.value = value.lower() == 'true'
+        elif self._match(TokenType.IDENTIFIER):
+            node.identifier = self._advance().value
+        else:
+            raise ParseError(
+                f"Expected expression, got {self.current_token.type.name}",
+                self.current_token
+            )
+        
+        return node
+    
+    def _match_expression_operator(self) -> bool:
+        """Check if current token is a binary operator"""
+        return self.current_token.type in [
+            TokenType.LT, TokenType.GT, TokenType.LE, TokenType.GE,
+            TokenType.EQ, TokenType.NE, TokenType.PLUS, TokenType.DASH,
+            TokenType.STAR, TokenType.SLASH, TokenType.PERCENT
+        ] or (self.current_token.type == TokenType.IDENTIFIER and 
+              self.current_token.value in ['and', 'or'])
     
     def _parse_constraints(self) -> List[ConstraintNode]:
         """Parse constraints section"""

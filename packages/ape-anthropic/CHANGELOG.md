@@ -5,11 +5,22 @@ All notable changes to ape-anthropic will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2025-12-06
+
+### Changed
+- **BREAKING:** Updated dependency to `ape-lang>=1.0.0` for compatibility with APE v1.0.0 release
+- Aligned version with APE core release (semantic versioning sync)
+
+### Compatibility
+- Fully compatible with APE v1.0.0 multi-language features
+- Tested with APE v1.0.0 runtime and executor
+- No functional changes to ape-anthropic code
+
+## [0.1.1] - Previous Release
 
 ### Changed
 - Completed executor and generator test suites for full coverage
-- Added end-to-end integration tests validating schema  execution flow
+- Added end-to-end integration tests validating schema execution flow
 - Improved test coverage for Claude dict-based tool use semantics
 - Enhanced error handling tests for missing parameters and unknown functions
 

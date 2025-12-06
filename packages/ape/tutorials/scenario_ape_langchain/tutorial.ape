@@ -1,0 +1,36 @@
+# Scenario: APE + LangChain Integration
+# EXPECT: "allowed"
+
+# Problem: Multi-step validation for LangChain workflow execution
+# APE demonstrates: Cascading safety checks for vector search + tool calls
+
+# Decision factors:
+# - Read-only operations: Always safe
+# - Vector search: Safe if read-only, risky if combined with tool calls
+# - Tool calls: Require execution permission, blocked if sensitive
+
+task main:
+    inputs:
+        is_read_only: Boolean
+        is_execute_step: Boolean
+        is_vector_search: Boolean
+        is_tool_call: Boolean
+    steps:
+        - set decision to "allowed"
+        
+        # Block execution steps unless explicitly allowed
+        if is_execute_step:
+            if is_read_only:
+                - set decision to "blocked"
+        
+        # Block tool calls in vector search (data exfiltration risk)
+        if is_vector_search:
+            if is_tool_call:
+                - set decision to "blocked"
+        
+        # Block tool calls without execution permission
+        if is_tool_call:
+            if is_execute_step == false:
+                - set decision to "blocked"
+        
+        - return decision

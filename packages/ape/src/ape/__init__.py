@@ -5,18 +5,41 @@ Main package for the Ape compiler.
 """
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Any, Optional
 import tempfile
 import importlib.util
 import sys
 
 from ape.runtime.core import ApeModule
+from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsExceeded
+from ape.runtime.executor import RuntimeExecutor
+from ape.runtime.trace import TraceCollector, TraceEvent
+from ape.runtime.explain import ExplanationStep, ExplanationEngine
+from ape.runtime.replay import ReplayEngine
+from ape.runtime.profile import (
+    RUNTIME_PROFILES,
+    get_profile,
+    list_profiles,
+    create_context_from_profile,
+    create_executor_config_from_profile,
+)
+# Import all errors from unified hierarchy
+from ape.errors import (
+    ApeError,
+    CapabilityError,
+    ReplayError,
+    ProfileError,
+    RuntimeExecutionError,
+    ParseError,
+    ValidationError,
+    LinkerError,
+)
 from ape.cli import build_project
 from ape.compiler.semantic_validator import SemanticValidator
 from ape.compiler.strictness_engine import StrictnessEngine
 from ape.codegen.python_codegen import PythonCodeGenerator
 
-__version__ = "0.2.1"
+__version__ = "1.0.0"
 
 
 class ApeCompileError(Exception):
@@ -143,11 +166,125 @@ def validate(module: ApeModule) -> None:
     pass
 
 
+def run(source: str, *, context: dict | None = None, language: str = "en") -> Any:
+    """
+    Execute Ape source code using AST-based runtime.
+    
+    This is a convenience function that:
+    1. Normalizes language-specific syntax to canonical APE (if needed)
+    2. Tokenizes and parses the source into an AST
+    3. Creates an ExecutionContext (optionally with initial variables)
+    4. Executes the AST using RuntimeExecutor
+    
+    This provides a quick way to run Ape code without going through
+    the full compilation pipeline. Useful for experiments and testing.
+    
+    Args:
+        source: Ape source code as a string
+        context: Optional dictionary of initial variables
+        language: ISO 639-1 language code (default: 'en')
+                  Supported: en, nl, fr, de, es, it, pt
+        
+    Returns:
+        The result of executing the program
+        
+    Raises:
+        ExecutionError: If runtime execution fails
+        ValidationError: If language code is unsupported
+        
+    Example:
+        >>> result = run('''
+        ... task main:
+        ...     inputs:
+        ...         x: Integer
+        ...     outputs:
+        ...         result: Integer
+        ...     steps:
+        ...         if x > 0:
+        ...             - set result to x * 2
+        ...         else:
+        ...             - set result to 0
+        ...         - return result
+        ... ''', context={'x': 5})
+        >>> print(result)
+        10
+        
+        >>> # Dutch syntax
+        >>> result = run('''
+        ... task main:
+        ...     steps:
+        ...         als x > 0:
+        ...             - set result to x * 2
+        ... ''', context={'x': 5}, language='nl')
+    """
+    from ape.tokenizer.tokenizer import Tokenizer
+    from ape.parser.parser import Parser
+    from ape.lang import get_adapter
+    
+    # Normalize language-specific syntax to canonical APE
+    adapter = get_adapter(language)
+    normalized_source = adapter.normalize_source(source)
+    
+    # Tokenize
+    tokenizer = Tokenizer(normalized_source)
+    tokens = tokenizer.tokenize()
+    
+    # Parse
+    parser = Parser(tokens)
+    ast = parser.parse()
+    
+    # Create execution context
+    exec_context = ExecutionContext()
+    if context:
+        for key, value in context.items():
+            exec_context.set(key, value)
+    
+    # Execute
+    executor = RuntimeExecutor()
+    return executor.execute(ast, exec_context)
+
+
 __all__ = [
+    # ===== PUBLIC API (v1.0 Stable) =====
+    # High-level functions
     "compile",
-    "validate", 
+    "validate",
+    "run",
+    
+    # Core runtime
     "ApeModule",
+    "ExecutionContext",
+    "RuntimeExecutor",
+    
+    # Tracing & observability
+    "TraceCollector",
+    "TraceEvent",
+    
+    # Explanation & replay
+    "ExplanationStep",
+    "ExplanationEngine",
+    "ReplayEngine",
+    
+    # Runtime profiles
+    "RUNTIME_PROFILES",
+    "get_profile",
+    "list_profiles",
+    "create_context_from_profile",
+    "create_executor_config_from_profile",
+    
+    # Errors (v1.0 unified hierarchy)
+    "ApeError",
     "ApeCompileError",
     "ApeValidationError",
     "ApeExecutionError",
+    "ExecutionError",
+    "MaxIterationsExceeded",
+    "CapabilityError",
+    "ReplayError",
+    "ProfileError",
+    "RuntimeExecutionError",
+    "ParseError",
+    "ValidationError",
+    "LinkerError",
 ]
+

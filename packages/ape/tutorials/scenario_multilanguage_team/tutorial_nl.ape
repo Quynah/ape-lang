@@ -1,0 +1,36 @@
+# Scenario: Meertalig Team — Nederlands
+# EXPECT: "approved"
+
+# Probleem: Teamleden spreken verschillende talen
+# APE demonstreert: Meerfactor goedkeuring met handmatige overschrijving
+# (Keywords zijn Engels, maar intent/comments kunnen Nederlands zijn)
+
+# Goedkeuringsfactoren:
+# - Basis: score >= threshold
+# - Gemarkeerde items vereisen handmatige overschrijving
+# - Handmatige overschrijving omzeilt automatische afwijzing
+
+task main:
+    inputs:
+        score: Integer
+        threshold: Integer
+        is_flagged: Boolean
+        manual_override: Boolean
+    steps:
+        - set result to "rejected"
+        
+        # Automatische goedkeuring als score voldoet en niet gemarkeerd
+        if score >= threshold:
+            if is_flagged == false:
+                - set result to "approved"
+        
+        # Gemarkeerde items kunnen worden goedgekeurd met override
+        if is_flagged:
+            if manual_override:
+                - set result to "approved"
+        
+        # Handmatige override kan goedkeuring forceren ongeacht score
+        if manual_override:
+            - set result to "approved"
+        
+        - return result

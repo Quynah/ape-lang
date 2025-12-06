@@ -1,0 +1,16 @@
+# Multi-Language Semantic Equivalence
+# Demonstrates: canonical semantics across language surfaces
+
+task main:
+    inputs:
+        a: Integer
+        b: Integer
+    steps:
+        - set total to 0
+        if a > 2:
+            - set total to total + a
+        if b > 2:
+            - set total to total + b
+
+
+

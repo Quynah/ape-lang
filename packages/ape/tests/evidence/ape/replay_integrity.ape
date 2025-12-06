@@ -1,0 +1,9 @@
+# Replay Integrity
+# Demonstrates: deterministic behavior, tamper detection
+# Same input always produces same trace, tampering is detectable
+
+task main:
+    steps:
+        - set a to 1
+        - set b to 2
+        - set result to a + b
