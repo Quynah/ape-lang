@@ -44,6 +44,7 @@ src/ape/__init__.py
 src/ape/__main__.py
 src/ape/cli.py
 src/ape/errors.py
+src/ape/language_spec.py
 src/ape/linker.py
 src/ape/benchmarks/benchmark_runner.py
 src/ape/codegen/__init__.py

@@ -1,153 +1,232 @@
-# Ape - AI Programming Language
+# APE Language — Monorepo
 
-**The very first AIP (AI Programming Language)** 🚀
+**A deterministic AI-first programming language designed for unambiguous human-AI collaboration.**
 
-Ape is an AI-native programming language with a strict core and Controlled Deviation System.
+[![PyPI version](https://badge.fury.io/py/ape-lang.svg)](https://pypi.org/project/ape-lang/)
+[![Tests](https://img.shields.io/badge/tests-439%20passing-brightgreen)](packages/ape/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Quickstart
+---
+
+## 📦 Packages
+
+### Core Language
+**[packages/ape/](packages/ape/)** - APE compiler, runtime, and standard library
+
+```bash
+pip install ape-lang
+```
+
+- ✅ **439 tests passing** (full compiler pipeline)
+- ✅ **Multi-language support** (7 languages: EN, NL, FR, DE, ES, IT, PT)
+- ✅ **Runtime observability** (tracing, explanation, replay)
+- ✅ **Standard library** (logic, strings, collections, math)
+- ✅ **Control flow** (if/while/for with AST-based execution)
+- 📖 [**Full documentation →**](packages/ape/README.md)
+
+### AI Integration Packages
+
+**[packages/ape-anthropic/](packages/ape-anthropic/)** - Anthropic Claude integration
+```bash
+pip install ape-anthropic
+```
+- Executor and schema for Claude API
+- 49 tests passing
+
+**[packages/ape-openai/](packages/ape-openai/)** - OpenAI GPT integration
+```bash
+pip install ape-openai
+```
+- Executor and schema for OpenAI API
+
+**[packages/ape-langchain/](packages/ape-langchain/)** - LangChain integration
+```bash
+pip install ape-langchain
+```
+- APE-to-LangChain bridge utilities
+
+---
+
+## 🚀 Quick Start
 
 ### Installation
+
 ```bash
-git clone https://github.com/yourusername/ape.git
-cd ape
-pip install -r requirements.txt  # if exists, or install pytest
+pip install ape-lang
 ```
 
-### CLI Usage
-```bash
-# Parse Ape source to AST
-python -m ape parse examples/calculator_basic.ape
+### Your First APE Program
 
-# Build IR (Intermediate Representation)
-python -m ape ir examples/calculator_basic.ape
-
-# Validate semantics and strictness
-python -m ape validate examples/calculator_basic.ape
-
-# Build Python code
-python -m ape build examples/calculator_basic.ape --target=python
-```
-
-### Your First Ape Program
 Create `hello.ape`:
 ```ape
-entity Greeting:
-    message: String
+module hello
 
-task say_hello:
+task greet:
     inputs:
-        - name: String
+        name: String
     outputs:
-        - greeting: Greeting
+        message: String
     
     constraints:
         - deterministic
     
     steps:
-        - create greeting with message
-        - return greeting
+        - set message to "Hello, " + name + "!"
+        - return message
 ```
 
-Then compile it:
+### Run It
+
 ```bash
-python -m ape validate hello.ape
-python -m ape build hello.ape --target=python
+# Validate syntax and semantics
+ape validate hello.ape
+
+# Compile to Python
+ape compile hello.ape
+
+# Run with Python backend
+ape run hello.ape
 ```
 
-## Core Philosophy
+### Use Programmatically
 
-> "What is allowed, is fully allowed.  
-> What is forbidden, is strictly forbidden.  
-> What is not declared, does not exist."
+```python
+from ape import compile
 
-## What is Implemented
+# Compile APE source
+module = compile("hello.ape")
 
-### ✅ 1. Parser & Tokenizer
-- **Tokenizer** with indentation-aware lexical analysis
-- **AST nodes** for all Ape constructs
-- **Recursive descent parser** for Ape grammar v0.3
-- **IR Builder** transforms AST to Intermediate Representation
-
-**Tests:** 11 passing
-
-### ✅ 2. Semantic Validator
-- **Symbol table** for tracking all declarations
-- **Type checking** (entities, enums, builtin types)
-- **Duplicate definition detection**
-- **Unknown type detection**
-- **Contract validation**
-- **Policy validation**
-- **Deviation validation** (RFC-0001)
-
-### ✅ 3. Strictness Engine
-- **Ambiguity detection** (maybe, possibly, ?, etc.)
-- **Undeclared behavior detection**
-- **Implicit choice detection** (or, choose, etc.)
-- **Non-determinism detection** (random, etc.)
-- **Deviation bounds validation**
-- **Policy conflict detection**
-
-**Tests:** 19 passing
-
-### ✅ 4. Python Code Generator
-- **Entity → Python @dataclass** with type hints
-- **Enum → Python constants class**
-- **Task → Python function** with documentation
-- **Flow → Orchestration function** + metadata
-- **Policy → Python dict** structures
-- **Syntactically valid Python** output
-
-**Tests:** 12 passing
-
-### ✅ 5. Runtime Support
-- **RunContext** for flow orchestration
-- Placeholder for logging, determinism, etc.
+# Call tasks
+result = module.call("greet", name="World")
+print(result)  # "Hello, World!"
+```
 
 ---
 
-## Project Structure
+## 🎯 Core Philosophy
+
+> **"What is allowed, is fully allowed.**  
+> **What is forbidden, is strictly forbidden.**  
+> **What is not declared, does not exist."**
+
+APE is designed for **deterministic execution** and **unambiguous communication** between humans and AI:
+
+- ✅ **Explicit over implicit** - No magic behavior
+- ✅ **Fail loud, fail fast** - Clear errors, no guessing
+- ✅ **Deterministic by default** - Same input → same output, always
+- ✅ **AI-friendly syntax** - Consistent structure for reliable code generation
+- ✅ **Dual-purpose design** - Bridge language (translator) + standalone language
+
+---
+
+## 📊 Repository Structure
 
 ```
-Ape/
-├── src/
-│   ├── apeparser/          # Parser & Tokenizer
-│   │   ├── tokenizer.py
-│   │   ├── parser.py
-│   │   ├── ast_nodes.py
-│   │   └── ir_builder.py
-│   ├── apecompiler/        # Compiler & Validation
-│   │   ├── ir_nodes.py
-│   │   ├── errors.py
-│   │   ├── semantic_validator.py
-│   │   └── strictness_engine.py
-│   ├── apecodegen/         # Code Generation
-│   │   └── python_codegen.py
-│   └── aperuntime/         # Runtime Support
-│       └── core.py
-├── tests/                  # Test Suite (49 tests)
-│   ├── parser/
-│   ├── compiler/semantic/
-│   ├── codegen/python/
-│   └── examples/           # Example program tests
-├── examples/               # Example Ape programs
-│   ├── calculator_basic.ape
-│   └── README.md
-├── generated/              # Generated Python code
-├── demo_pipeline.py        # Complete pipeline demo
-└── example_generate.py     # Code generation example
+ape-lang/
+├── packages/
+│   ├── ape/                    # Core language compiler & runtime
+│   │   ├── src/ape/           # Source code
+│   │   ├── tests/             # 439 tests
+│   │   ├── docs/              # Documentation (300+ pages)
+│   │   ├── ape_std/           # Standard library
+│   │   └── examples/          # Example programs
+│   ├── ape-anthropic/         # Anthropic integration
+│   ├── ape-openai/            # OpenAI integration
+│   └── ape-langchain/         # LangChain integration
+├── demo_*.ape                 # Demo programs
+└── generated/                 # Generated code output
 ```
 
-## Ape Syntax Voorbeeld
+---
+
+## 🧪 Testing
+
+All packages have comprehensive test suites:
+
+```bash
+# Run core language tests (439 tests)
+cd packages/ape
+pytest
+
+# Run integration tests
+cd packages/ape-anthropic
+pytest
+```
+
+---
+
+## 📖 Documentation
+
+- **[Main README](packages/ape/README.md)** - Complete language documentation
+- **[Philosophy](packages/ape/docs/philosophy.md)** - Design principles
+- **[Module System](packages/ape/docs/modules_and_imports.md)** - Import resolution (1334 lines!)
+- **[Runtime Observability](packages/ape/docs/runtime_observability.md)** - Tracing & replay
+- **[Multi-Language](packages/ape/docs/multilanguage.md)** - Surface syntax variants
+- **[Roadmap](packages/ape/docs/ROADMAP.md)** - Implementation status
+
+---
+
+## 🌍 Multi-Language Support
+
+Write APE using keywords from your native language:
 
 ```ape
-entity User:
-    id: Integer
-    username: String
-    email: String
+# English (canonical)
+task calculate:
+    inputs: x: Integer
+    steps:
+        if x > 0:
+            - return x * 2
 
-enum UserRole:
-    - admin
-    - user
+# Dutch
+taak berekenen:
+    invoer: x: Integer
+    stappen:
+        als x > 0:
+            - return x * 2
+
+# French
+tâche calculer:
+    entrées: x: Integer
+    étapes:
+        si x > 0:
+            - return x * 2
+```
+
+All produce identical AST and runtime behavior.
+
+---
+
+## 🔗 Links
+
+- **PyPI Core:** https://pypi.org/project/ape-lang/
+- **PyPI Anthropic:** https://pypi.org/project/ape-anthropic/
+- **PyPI OpenAI:** https://pypi.org/project/ape-openai/
+- **PyPI LangChain:** https://pypi.org/project/ape-langchain/
+- **GitHub:** https://github.com/Quynah/ape-lang
+- **Issues:** https://github.com/Quynah/ape-lang/issues
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## 👤 Author
+
+**David Van Aelst**
+
+---
+
+## 🦍 Status: v1.0.0
+
+**Current Release:** v1.0.0 (December 6, 2025)  
+**Maturity:** Production-ready core, scaffolded advanced features  
+**Tests:** 439/439 passing ✅
+
+See [CHANGELOG](packages/ape/CHANGELOG.md) for version history
     - guest
 
 task CreateUser:
