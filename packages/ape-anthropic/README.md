@@ -6,6 +6,14 @@ Anthropic Claude integration for APE (AI Programmatic Execution).
 
 **ape-anthropic** bridges APE's deterministic validation layer with Anthropic's Claude tool use API. It prevents hallucinations in Claude function parameters by enforcing strict type checking and constraints before execution.
 
+## Architecture: Decision Authority
+
+**AI components provide suggestions and structured input only.**  
+All parsing, validation, and execution decisions are made exclusively by the APE runtime.  
+Invalid or hallucinated AI output is treated as untrusted input and rejected deterministically.
+
+Claude generates tool use parameters. APE validates and executes. Claude never bypasses validation or directly executes logic.
+
 ## Why ape-anthropic?
 
 Claude's tool use is powerful but unreliable:

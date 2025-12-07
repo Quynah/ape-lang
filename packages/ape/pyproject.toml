@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ape-lang"
-version = "1.0.1"
+version = "1.0.2"
 description = "A deterministic AI-first programming language for unambiguous human-AI collaboration"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"

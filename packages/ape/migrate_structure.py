@@ -1,8 +1,6 @@
 """
 Script to migrate Ape to new structure and update all imports
 """
-import os
-import re
 from pathlib import Path
 
 # Mapping of old imports to new imports

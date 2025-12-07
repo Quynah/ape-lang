@@ -6,6 +6,14 @@ LangChain integration for APE (AI Programmatic Execution).
 
 **ape-langchain** provides seamless integration between APE's deterministic functions and LangChain's agent framework. Convert APE tasks into LangChain tools with automatic validation and type safety.
 
+## Architecture: Decision Authority
+
+**AI components provide suggestions and structured input only.**  
+All parsing, validation, and execution decisions are made exclusively by the APE runtime.  
+Invalid or hallucinated AI output is treated as untrusted input and rejected deterministically.
+
+LangChain agents generate tool calls. APE validates and executes. Agents never bypass validation or directly execute logic.
+
 ## Why ape-langchain?
 
 LangChain agents are powerful but need reliable tools:

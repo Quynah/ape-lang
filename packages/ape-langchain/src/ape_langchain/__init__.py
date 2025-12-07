@@ -60,7 +60,7 @@ class ApeTask:
         )
 
 
-__version__ = "0.1.0"
+__version__ = "1.0.2"
 
 __all__ = [
     "ape_task_to_langchain_schema",

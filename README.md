@@ -1,10 +1,86 @@
 # APE Language — Monorepo
 
-**A deterministic AI-first programming language designed for unambiguous human-AI collaboration.**
+**A deterministic decision language for auditable, traceable, and explainable systems.**
 
 [![PyPI version](https://badge.fury.io/py/ape-lang.svg)](https://pypi.org/project/ape-lang/)
 [![Tests](https://img.shields.io/badge/tests-439%20passing-brightgreen)](packages/ape/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+---
+
+## ⚠️ Intended Audience (v1.x)
+
+**APE v1.x is designed for:**
+
+- Engineers and researchers building **deterministic decision systems**
+- Environments with **governance, audit, or safety requirements**
+- Use cases requiring **explainability and traceability** of decisions
+- **Controlled AI integrations** where AI provides input but does not directly execute decisions
+- Systems where **human oversight** is required or mandated
+
+**APE is focused on:**
+- Structured decision logic that can be inspected and explained
+- Workflows where determinism, reproducibility, and auditability matter
+- Integration scenarios where AI assists but humans remain accountable
+
+---
+
+## 🚫 Explicit Exclusions (Non-Goals)
+
+**APE v1.x is NOT:**
+
+- ❌ A general-purpose programming language (use Python, JavaScript, Rust, etc.)
+- ❌ An AI agent framework (not designed for autonomous agents)
+- ❌ An autonomous decision maker (requires human control and oversight)
+- ❌ Suitable for unsupervised or self-executing systems
+- ❌ Intended for direct consumer-facing applications without oversight
+- ❌ A replacement for production languages in general software development
+
+**If you need:**
+- General computation → use Python, Go, Rust
+- Autonomous AI agents → use LangChain, AutoGPT, or agent frameworks
+- Web applications → use React, Django, Rails
+- System programming → use C, Rust, Zig
+
+APE serves a **narrow, specific niche**: deterministic decision logic with full observability.
+
+---
+
+## 🛡️ Governance & Safety Design
+
+**APE is built with governance and responsibility as core principles:**
+
+- **Dry-run by default** - No mutations without explicit opt-in (`allow_execution=True`)
+- **Mandatory traceability** - Every execution has a unique `trace_id`
+- **Explainability first** - Decision paths can be explained and replayed
+- **Human accountability** - Designed for human-in-the-loop workflows, not autonomous systems
+
+**APE is not suitable for:**
+- Applications where autonomous decisions directly impact vulnerable populations (including minors) without human review
+- Systems requiring real-time autonomous responses without oversight
+- Scenarios where traceability and auditability are not feasible or required
+
+**These are design constraints, not certifications or guarantees.** Users remain responsible for appropriate use, compliance with regulations, and ethical deployment.
+
+---
+
+## 🎯 Why APE Exists (Practical)
+
+**Existing AI tools let AI decide. APE splits this explicitly:**
+
+- **AI = input** (suggestions, analysis, generated candidates)
+- **APE = decision** (deterministic logic, traceable execution)
+
+**APE exists to:**
+
+1. **Enforce deterministic decisions** - No "best effort" or ambiguous outcomes
+2. **Make explainability standard** - Every decision path can be explained and replayed
+3. **Enable audit & governance** - Full traceability with mandatory `trace_id`
+4. **Eliminate ambiguity** - What is allowed is explicit, what is forbidden is enforced
+
+**Use case:** AI generates multiple policy candidates → APE validates and enforces exactly one → Decision is traceable and auditable.
+
+**Not a vision statement. This is what the system does.**
 
 ---
 
@@ -109,13 +185,19 @@ print(result)  # "Hello, World!"
 > **What is forbidden, is strictly forbidden.**  
 > **What is not declared, does not exist."**
 
-APE is designed for **deterministic execution** and **unambiguous communication** between humans and AI:
+APE is a **decision language**, not a general-purpose programming language:
 
-- ✅ **Explicit over implicit** - No magic behavior
-- ✅ **Fail loud, fail fast** - Clear errors, no guessing
+- ✅ **Explicit over implicit** - No magic behavior, no hidden side effects
+- ✅ **Fail loud, fail fast** - Clear errors, no silent failures
 - ✅ **Deterministic by default** - Same input → same output, always
-- ✅ **AI-friendly syntax** - Consistent structure for reliable code generation
-- ✅ **Dual-purpose design** - Bridge language (translator) + standalone language
+- ✅ **Traceable by design** - Every execution produces inspectable traces
+- ✅ **Human-supervised** - Built for controlled execution, not autonomous operation
+
+**APE is a bridge language:**
+- Translates human intent into deterministic logic
+- Enables AI to assist with structured decision workflows
+- Maintains full auditability and explainability
+- Keeps humans accountable for outcomes
 
 ---
 
@@ -220,159 +302,23 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-## 🦍 Status: v1.0.0
+## 🦍 Status: v1.0.2
 
-**Current Release:** v1.0.0 (December 6, 2025)  
+**Current Release:** v1.0.2 (December 7, 2025)  
+**Tag:** ape-v1.0.2-analyzer-ready  
 **Maturity:** Production-ready core, scaffolded advanced features  
 **Tests:** 439/439 passing ✅
 
 See [CHANGELOG](packages/ape/CHANGELOG.md) for version history
-    - guest
-
-task CreateUser:
-    inputs:
-        username: String
-        email: String
-        role: UserRole
-    outputs:
-        user: User
-    steps:
-        - validate username is not empty
-        - validate email format
-        - create User instance
-        - assign role to user
-        - return user
-    constraints:
-        - username must be unique
-
-flow UserRegistrationFlow:
-    steps:
-        - receive registration request
-        - call CreateUser task
-        - send welcome email
-        - return success
-
-policy SecurityPolicy:
-    rules:
-        - all passwords must be hashed
-        - user data must be encrypted
-```
-
-## Usage
-
-### Complete Pipeline
-
-```python
-from apeparser import parse_ape_source, IRBuilder
-from apecompiler.semantic_validator import SemanticValidator
-from apecompiler.strictness_engine import StrictnessEngine
-from apecodegen.python_codegen import PythonCodeGenerator
-from apecompiler.ir_nodes import ProjectNode
-
-# 1. Parse Ape source
-ast = parse_ape_source(source, "example.ape")
-
-# 2. Build IR
-builder = IRBuilder()
-ir_module = builder.build_module(ast, "example.ape")
-project = ProjectNode(name="MyProject", modules=[ir_module])
-
-# 3. Validate
-validator = SemanticValidator()
-errors = validator.validate_project(project)
-
-# 4. Check strictness
-engine = StrictnessEngine()
-warnings = engine.enforce(project)
-
-# 5. Generate Python
-codegen = PythonCodeGenerator(project)
-files = codegen.generate()
-
-# 6. Save
-for file in files:
-    with open(file.path, 'w') as f:
-        f.write(file.content)
-```
-
-### Running Demos
-
-```bash
-# Complete pipeline demo
-python demo_pipeline.py
-
-# Generate code
-python example_generate.py
-
-# Run tests
-python -m pytest tests/ -v
-
-# Test calculator example
-python -m pytest tests/examples/test_calculator_basic.py -v
-```
-
-## Examples
-
-### Calculator Examples
-
-#### 1. Calculator Basic (`calculator_basic.ape`)
-A fully deterministic calculator example that demonstrates:
-- Strict type checking without ambiguity
-- Deterministic constraints
-- No controlled deviation
-- Complete pipeline from Ape → Python
-
-#### 2. Calculator Smart (`calculator_smart.ape`)
-Demonstrates the **Controlled Deviation System (CDS)**:
-- Deterministic for calculations
-- Creative freedom for human summary
-- Explicit bounds define what can vary
-- Rationale explains why deviation is needed
-
-See [`examples/calculator_basic.ape`](examples/calculator_basic.ape), [`examples/calculator_smart.ape`](examples/calculator_smart.ape) and [`examples/README.md`](examples/README.md) for details.
-
-## Test Results
-
-```
-✅ Parser tests:           11 passed
-✅ Semantic tests:         19 passed
-✅ Codegen tests:          12 passed
-✅ Example tests:          14 passed (7 basic + 7 smart)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   TOTAL:                  56 passed
-```
-
-## What Makes Ape Unique
-
-1. **Strict Determinism** - No implicit ambiguity allowed
-2. **Controlled Deviation** (RFC-0001) - Explicit flexibility with bounds
-3. **AI-Native** - Designed for AI agents to work with
-4. **Type Safety** - Strict type checking at all levels
-5. **Policy Enforcement** - Policy rules integrated in the language
-
-## Next Steps
-
-Potential extensions:
-- [ ] Fully implement deviation system
-- [ ] Runtime with logging and tracing
-- [ ] Web-based playground
-- [ ] VS Code extension
-- [ ] More target languages (TypeScript, Rust, etc.)
-- [ ] Standard library with common patterns
-- [ ] Package manager for Ape modules
-
-## Technische Details
-
-- **Taal:** Python 3.11+
-- **Dependencies:** Geen (stdlib only)
-- **Test Framework:** pytest
-- **Code Style:** Typed Python met dataclasses
 
 ---
 
-**Status:** 🟢 Prototype v0.1 - Parser, Validator & Python Codegen working
+## 👤 Author
 
-**Date:** December 3, 2025
+**David Van Aelst**
 
-**Author:** Author: David Van Aelst (APE Creator)
+---
 
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.

@@ -9,7 +9,7 @@ import re
 from typing import Any, List, Optional
 from ape.parser.ast_nodes import (
     ASTNode, IfNode, WhileNode, ForNode, ExpressionNode,
-    StepNode, TaskDefNode, FlowDefNode, ModuleNode
+    StepNode, TaskDefNode, ModuleNode
 )
 from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsExceeded
 from ape.runtime.trace import TraceCollector, TraceEvent, create_snapshot
@@ -47,19 +47,34 @@ class RuntimeExecutor:
         self, 
         max_iterations: int = 10_000,
         trace: Optional[TraceCollector] = None,
-        dry_run: bool = False
+        dry_run: bool = True,  # ETHICAL DEFAULT: dry-run unless explicitly allowed
+        allow_execution: bool = False
     ):
         """
         Initialize runtime executor.
         
+        OBSERVABILITY CONTRACT:
+        - Default mode is dry-run (no side effects)
+        - Real execution requires explicit allow_execution=True
+        - This is an ethical contract: no mutations without consent
+        
         Args:
             max_iterations: Maximum loop iterations (safety limit)
             trace: Optional trace collector for execution observability
-            dry_run: If True, run in dry-run mode (no mutations)
+            dry_run: If True, run in dry-run mode (no mutations). Default is True.
+            allow_execution: If True, enables real execution (overrides dry_run).
+                           This must be explicitly set for side effects.
         """
         self.max_iterations = max_iterations
         self.trace = trace
-        self.dry_run = dry_run
+        
+        # Ethical default enforcement
+        if allow_execution:
+            # Explicit permission granted for execution
+            self.dry_run = False
+        else:
+            # Default to dry-run (safe mode)
+            self.dry_run = True if dry_run else False
     
     def execute(self, node: ASTNode, context: Optional[ExecutionContext] = None) -> Any:
         """

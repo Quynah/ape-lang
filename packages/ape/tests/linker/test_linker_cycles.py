@@ -8,7 +8,6 @@ Tests cycle detection:
 """
 
 import pytest
-from pathlib import Path
 
 from ape.linker import Linker, LinkError
 

@@ -5,10 +5,9 @@ Main package for the Ape compiler.
 """
 
 from pathlib import Path
-from typing import Union, Any, Optional
+from typing import Union, Any
 import tempfile
 import importlib.util
-import sys
 
 from ape.runtime.core import ApeModule
 from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsExceeded
@@ -35,11 +34,9 @@ from ape.errors import (
     LinkerError,
 )
 from ape.cli import build_project
-from ape.compiler.semantic_validator import SemanticValidator
-from ape.compiler.strictness_engine import StrictnessEngine
 from ape.codegen.python_codegen import PythonCodeGenerator
 
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 
 
 class ApeCompileError(Exception):
@@ -233,14 +230,14 @@ def run(source: str, *, context: dict | None = None, language: str = "en") -> An
     parser = Parser(tokens)
     ast = parser.parse()
     
-    # Create execution context
-    exec_context = ExecutionContext()
+    # Create execution context with mutations enabled (for convenience function)
+    exec_context = ExecutionContext(dry_run=False)
     if context:
         for key, value in context.items():
             exec_context.set(key, value)
     
-    # Execute
-    executor = RuntimeExecutor()
+    # Execute with mutations allowed
+    executor = RuntimeExecutor(allow_execution=True)
     return executor.execute(ast, exec_context)
 
 

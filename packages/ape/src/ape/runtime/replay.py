@@ -5,7 +5,7 @@ Validates deterministic execution by replaying traces.
 Does not re-execute code - validates trace structure and determinism.
 """
 
-from typing import List, Optional
+from typing import List
 from ape.runtime.trace import TraceCollector, TraceEvent
 from ape.errors import ReplayError
 
@@ -175,7 +175,7 @@ class ReplayEngine:
         for var_name in enter_vars:
             if var_name in exit_vars:
                 # Variable exists in both - validate type consistency
-                enter_val = enter_vars[var_name]
+                _enter_val = enter_vars[var_name]
                 exit_val = exit_vars[var_name]
                 
                 # Type can change (reassignment), but should be valid

@@ -85,8 +85,8 @@ class TestRiskClassification:
         """
         trace = TraceCollector()
         context = {"x": 1, "y": 2}
-        result = run_ape("risk_classification.ape", trace=trace, context=context)
-        
+        _result = run_ape("risk_classification.ape", trace=trace, context=context)
+
         # Verify trace captured key operations
         events = trace.events()
         node_types = {e.node_type for e in events}
@@ -127,9 +127,9 @@ class TestMultiLanguageEquivalence:
         - Runtime behavior is language-agnostic
         """
         context = {"a": 3, "b": 4}
-        en_result = run_ape("multilanguage_equivalence.ape", language="en", context=context)
-        nl_result = run_ape("multilanguage_equivalence.ape", language="nl", context=context)
-        
+        _en_result = run_ape("multilanguage_equivalence.ape", language="en", context=context)
+        _nl_result = run_ape("multilanguage_equivalence.ape", language="nl", context=context)
+
         # Both must execute without errors (results may be None without return statement)
         # The key evidence is that both languages parse and execute successfully
     
@@ -199,15 +199,15 @@ class TestDryRunGovernance:
         
         # Normal execution
         normal_trace = TraceCollector()
-        normal_result = run_ape("dry_run_governance.ape", trace=normal_trace, dry_run=False, context=context)
-        
+        _normal_result = run_ape("dry_run_governance.ape", trace=normal_trace, dry_run=False, context=context)
+
         # Dry-run execution
         dry_trace = TraceCollector()
         try:
-            dry_result = run_ape("dry_run_governance.ape", trace=dry_trace, dry_run=True, context=context)
+            _dry_result = run_ape("dry_run_governance.ape", trace=dry_trace, dry_run=True, context=context)
         except Exception:
-            dry_result = None  # May fail on return
-        
+            _dry_result = None  # May fail on return
+
         # Normal execution should execute without errors
         # (Return value semantics depend on task structure)
         
@@ -233,22 +233,22 @@ class TestObservabilityFlow:
         """
         trace = TraceCollector()
         context = {"x": 5, "y": 10}
-        result = run_ape("observability_flow.ape", trace=trace, context=context)
-        
-        # Generate explanation using from_trace() method
+        _result = run_ape("observability_flow.ape", trace=trace, context=context)
+
+        # Generate explanation using explain() method (new v1.0.2 API)
         engine = ExplanationEngine()
-        explanation_steps = engine.from_trace(trace)
+        explanation = engine.explain(trace, status="completed")
         
-        # Explanation must contain steps
-        assert len(explanation_steps) > 0, "Explanation must contain steps"
+        # Explanation must contain decision steps
+        assert len(explanation.decisions) > 0, "Explanation must contain decision steps"
         
-        # Check for control flow descriptions
-        summaries = [step.summary for step in explanation_steps]
-        summaries_text = " ".join(summaries).lower()
+        # Check for control flow descriptions in decision steps
+        actions = [step.action for step in explanation.decisions]
+        actions_text = " ".join(actions).lower()
         
         # Must mention condition evaluation (if statement)
-        assert any(word in summaries_text for word in ["condition", "if", "evaluated", "true", "false"]), \
-            f"Explanation must describe condition evaluation. Got: {summaries}"
+        assert any(word in actions_text for word in ["condition", "if", "evaluated", "true", "false"]), \
+            f"Explanation must describe condition evaluation. Got: {actions}"
     
     def test_observability_trace_structure(self):
         """Verify trace has proper structure (enter/exit pairs)"""
@@ -289,8 +289,8 @@ class TestReplayIntegrity:
         """
         trace = TraceCollector()
         context = {"a": 1, "b": 2}
-        result = run_ape("replay_integrity.ape", trace=trace, context=context)
-        
+        _result = run_ape("replay_integrity.ape", trace=trace, context=context)
+
         # Replay should succeed
         engine = ReplayEngine()
         validation = engine.replay(trace)
@@ -366,7 +366,7 @@ class TestEvidenceIntegration:
         
         for scenario, ctx in scenarios:
             try:
-                result = run_ape(scenario, context=ctx)
+                _result = run_ape(scenario, context=ctx)
                 # Execution succeeded (result may be None without return statements)
                 pass
             except Exception as e:
@@ -385,8 +385,8 @@ class TestEvidenceIntegration:
         # Execute with trace
         trace = TraceCollector()
         context = {"x": 1, "y": 2}
-        result = run_ape("risk_classification.ape", trace=trace, context=context)
-        
+        _result = run_ape("risk_classification.ape", trace=trace, context=context)
+
         # Verify trace captured execution
         assert len(trace.events()) > 0
         

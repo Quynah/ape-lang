@@ -11,7 +11,7 @@ Tests the parser's ability to handle:
 import pytest
 from ape.tokenizer.tokenizer import Tokenizer
 from ape.parser.parser import Parser, ParseError
-from ape.parser.ast_nodes import ModuleNode, ImportNode, QualifiedIdentifierNode
+from ape.parser.ast_nodes import ModuleNode, ImportNode
 
 
 class TestModuleDeclarations:

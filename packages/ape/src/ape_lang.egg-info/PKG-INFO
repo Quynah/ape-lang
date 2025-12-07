@@ -103,55 +103,43 @@ Four core modules in `ape_std/`:
 - **Deterministic Normalization** - All languages produce identical AST and runtime behavior
 - **Keyword-Only Translation** - Identifiers and literals remain unchanged
 
-### 🏗️ Scaffolded Features (Structure Complete, Implementation Pending)
+### 🧱 Scaffolded (Not Yet Integrated)
 
-These features have complete module structure, documentation, and test skeletons, but return `NotImplementedError` until future implementation.
+These modules exist with complete structure and documentation, but are **not wired into the active runtime**. They return `NotImplementedError` if called. Integration work required.
 
-#### Exception Handling (v0.4.0 roadmap)
-- **Try/Catch/Finally** - Structured exception handling
-- **User-Defined Errors** - Raise custom errors with messages
-- **Error Propagation** - Exception propagation through call stack
-- **Documentation:** `docs/error_model.md`
+**⚠️ Do NOT assume these features work. They are placeholders for future implementation.**
 
-#### Structured Types (v0.4.0 roadmap)
-- **List<T>** - Generic typed lists
-- **Map<K,V>** - Generic typed maps/dictionaries
-- **Record** - Named field structures
-- **Tuple** - Fixed-size heterogeneous collections
-- **Type Inference** - Automatic type deduction
-- **Documentation:** `docs/typesystem.md`
+#### Exception Handling
+- Structure: `src/ape/runtime/errors.py` (try/catch/finally AST nodes exist)
+- Status: Not integrated into executor
+- Documentation: `docs/error_model.md`
 
-#### Expanded Standard Library (v0.5.0 roadmap)
-- **JSON Module** - Parse, stringify, path-based access
-- **Extended Math** - Trigonometry, logarithms, rounding (sin, cos, log, floor, ceil, PI, E)
-- **Extended Collections** - reduce, reverse, sort, zip, enumerate, range
-- **Documentation:** `docs/stdlib_json.md`, `docs/stdlib_math_ext.md`
+#### Structured Types  
+- Structure: `src/ape/types/` (List<T>, Map<K,V>, Record, Tuple classes exist)
+- Status: Not integrated into type system
+- Documentation: `docs/typesystem.md`
 
-#### Compiler Backend & VM (v0.6.0 roadmap)
-- **Optimizer** - Constant folding, dead code elimination, CSE, loop unrolling, TCO
-- **Bytecode VM** - Stack-based virtual machine with 30+ opcodes
-- **Compilation Pipeline** - Parse → Optimize → Bytecode → Execute
-- **Benchmarking** - Performance measurement infrastructure
-- **Documentation:** `docs/compiler_optimization.md`, `docs/bytecode_vm.md`, `docs/performance_tuning.md`
+#### Expanded Standard Library
+- Structure: `src/ape/std/json.py`, `src/ape/std/math_ext.py`
+- Status: Stub implementations only
+- Documentation: `docs/stdlib_json.md`, `docs/stdlib_math_ext.md`
 
-**Note on Scaffolded Features:** These features have complete architecture and documentation. Calling them returns `NotImplementedError` with clear messages. Enable them by implementing the stub methods according to the provided specifications.
-- **See:** [Multi-Language Documentation](docs/multilanguage.md)
+#### Compiler Backend & VM
+- Structure: `src/ape/compiler/optimizer.py`, `src/ape/vm/vm.py`, `src/ape/vm/instructions.py`
+- Status: **SCAFFOLDED** headers added, not wired into compilation pipeline
+- Documentation: `docs/compiler_optimization.md`, `docs/bytecode_vm.md`
 
-### ✅ Standard Library (Pure, Deterministic Core)
-- **Pure functions** - No side effects, deterministic behavior
-- **Runtime intrinsics** - Built into executor, no capabilities needed
-- **Four modules** - logic, collections, strings, math (22 functions total)
-- **Full type safety** - Clear error messages for invalid inputs
-- **86 tests passing** - Comprehensive test coverage
-- **See:** [Standard Library Documentation](docs/stdlib.md)
+#### Type Validator
+- Structure: `src/ape/validator/types.py`
+- Status: Not integrated into semantic validation
+- Documentation: `docs/typesystem.md`
 
-### 🚧 Not Yet Implemented
-- Exception handling (try/catch constructs)
-- Structured types beyond basics (lists, maps, records)
-- JSON parsing and serialization
-- Type system beyond basic types
-- Ape bytecode VM
-- Package manager
+#### Benchmarking
+- Structure: `src/ape/benchmarks/benchmark_runner.py`
+- Status: **SCAFFOLDED** header added, infrastructure only
+- Documentation: `docs/performance_tuning.md`
+
+**Note:** Scaffolded modules have complete architecture and specifications. Enable them by implementing the stub methods and wiring them into the execution pipeline. See individual module docstrings for integration requirements.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the complete roadmap with status per version.
 

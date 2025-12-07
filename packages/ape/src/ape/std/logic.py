@@ -2,9 +2,100 @@
 APE Standard Library - Logic Module
 
 Pure boolean logic and assertion functions.
+
+STRICT BOOLEAN OPERATORS:
+All logical operators (and_op, or_op, not_op) require explicit booleans.
+No truthy/falsy coercion - non-boolean inputs raise LogicTypeError.
 """
 
 from typing import Any, Optional, List
+from ape.std.errors import LogicTypeError
+
+
+def and_op(a: bool, b: bool) -> bool:
+    """
+    Strict boolean AND operation.
+    
+    Args:
+        a: First boolean value
+        b: Second boolean value
+        
+    Returns:
+        True if both a and b are True, False otherwise
+        
+    Raises:
+        LogicTypeError: If a or b is not a boolean
+        
+    Examples:
+        and_op(True, True) → True
+        and_op(True, False) → False
+        and_op(1, 1) → LogicTypeError (not booleans)
+        
+    Note:
+        This is NOT short-circuiting - both arguments are always evaluated.
+        For short-circuit behavior, use APE's native `if` statements.
+    """
+    if not isinstance(a, bool):
+        raise LogicTypeError("and_op", "a", type(a).__name__)
+    if not isinstance(b, bool):
+        raise LogicTypeError("and_op", "b", type(b).__name__)
+    
+    return a and b
+
+
+def or_op(a: bool, b: bool) -> bool:
+    """
+    Strict boolean OR operation.
+    
+    Args:
+        a: First boolean value
+        b: Second boolean value
+        
+    Returns:
+        True if either a or b is True, False otherwise
+        
+    Raises:
+        LogicTypeError: If a or b is not a boolean
+        
+    Examples:
+        or_op(True, False) → True
+        or_op(False, False) → False
+        or_op(1, 0) → LogicTypeError (not booleans)
+        
+    Note:
+        This is NOT short-circuiting - both arguments are always evaluated.
+        For short-circuit behavior, use APE's native `if` statements.
+    """
+    if not isinstance(a, bool):
+        raise LogicTypeError("or_op", "a", type(a).__name__)
+    if not isinstance(b, bool):
+        raise LogicTypeError("or_op", "b", type(b).__name__)
+    
+    return a or b
+
+
+def not_op(a: bool) -> bool:
+    """
+    Strict boolean NOT operation.
+    
+    Args:
+        a: Boolean value to negate
+        
+    Returns:
+        True if a is False, False if a is True
+        
+    Raises:
+        LogicTypeError: If a is not a boolean
+        
+    Examples:
+        not_op(True) → False
+        not_op(False) → True
+        not_op(0) → LogicTypeError (not boolean)
+    """
+    if not isinstance(a, bool):
+        raise LogicTypeError("not_op", "a", type(a).__name__)
+    
+    return not a
 
 
 def assert_condition(condition: bool, message: Optional[str] = None) -> None:
@@ -113,6 +204,9 @@ def not_equals(a: Any, b: Any) -> bool:
 
 
 __all__ = [
+    'and_op',
+    'or_op',
+    'not_op',
     'assert_condition',
     'all_true',
     'any_true',

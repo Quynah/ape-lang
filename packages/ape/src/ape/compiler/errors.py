@@ -5,8 +5,8 @@ Machine-readable error structures for the Ape compiler.
 All errors follow Ape's strict philosophy: clear, deterministic, and actionable.
 """
 
-from dataclasses import dataclass, asdict
-from typing import Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Optional, Dict, Any, List
 from enum import Enum
 from .ir_nodes import Location
 

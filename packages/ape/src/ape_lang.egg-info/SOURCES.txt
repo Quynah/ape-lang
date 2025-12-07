@@ -17,6 +17,7 @@ docs/bytecode_vm.md
 docs/codegen_namespacing.md
 docs/compiler_optimization.md
 docs/control_flow.md
+docs/deterministic_math_and_logic.md
 docs/error_model.md
 docs/linker_implementation.md
 docs/module_examples_summary.md
@@ -83,6 +84,8 @@ src/ape/runtime/replay.py
 src/ape/runtime/trace.py
 src/ape/std/__init__.py
 src/ape/std/collections.py
+src/ape/std/comparison.py
+src/ape/std/errors.py
 src/ape/std/json.py
 src/ape/std/logic.py
 src/ape/std/math.py

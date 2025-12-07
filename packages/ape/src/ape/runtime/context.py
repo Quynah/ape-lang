@@ -6,7 +6,7 @@ Maintains variable bindings and scope in a deterministic, sandbox-safe manner.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, List, Set
+from typing import Any, Dict, Optional, Set
 
 # Import errors from unified hierarchy (backwards compatibility maintained)
 from ape.errors import ExecutionError, MaxIterationsExceeded
@@ -20,18 +20,30 @@ class ExecutionContext:
     Manages variable bindings and scope without any I/O or side effects.
     Design for sandbox safety: no filesystem, network, or environment access.
     
+    OBSERVABILITY CONTRACT:
+    - Default mode is dry-run (ethical default: no side effects without consent)
+    - Trace ID automatically assigned for full observability
+    
     Attributes:
         variables: Current scope variable bindings
         parent: Parent scope (for nested scopes)
         max_iterations: Safety limit for loops (default 10,000)
-        dry_run: If True, mutations are blocked (dry-run mode)
+        dry_run: If True, mutations are blocked (default: True)
         capabilities: Set of allowed capabilities for gated operations
+        trace_id: Trace identifier for observability (auto-generated if None)
     """
     variables: Dict[str, Any] = field(default_factory=dict)
     parent: Optional['ExecutionContext'] = None
     max_iterations: int = 10_000
-    dry_run: bool = False
+    dry_run: bool = True  # ETHICAL DEFAULT
     capabilities: Set[str] = field(default_factory=set)
+    trace_id: Optional[str] = None
+    
+    def __post_init__(self):
+        """Auto-generate trace_id if not provided"""
+        if self.trace_id is None:
+            import uuid
+            self.trace_id = str(uuid.uuid4())
     
     def get(self, name: str) -> Any:
         """

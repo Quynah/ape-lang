@@ -61,7 +61,7 @@ print()
 
 # 5. Create context from profile
 context = create_context_from_profile('analysis')
-print(f'5. CONTEXT FROM PROFILE:')
+print('5. CONTEXT FROM PROFILE:')
 print(f'   Analysis profile → dry_run={context.dry_run}, can_mutate={context.can_mutate()}')
 
 print('\n✓ All introspection features working!')

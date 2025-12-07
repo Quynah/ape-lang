@@ -7,7 +7,7 @@ added to the runtime in v0.3.0.
 
 import pytest
 from ape.parser.parser import parse_ape_source
-from ape.parser.ast_nodes import IfNode, WhileNode, ExpressionNode
+from ape.parser.ast_nodes import IfNode, ExpressionNode
 from ape.runtime.executor import RuntimeExecutor
 from ape.runtime.context import ExecutionContext
 from ape.runtime.trace import TraceCollector, TraceEvent, create_snapshot
@@ -50,8 +50,8 @@ task test:
 """
         ast = parse_ape_source(source)
         collector = TraceCollector()
-        executor = RuntimeExecutor(trace=collector)
-        context = ExecutionContext()
+        executor = RuntimeExecutor(trace=collector, allow_execution=True)
+        context = ExecutionContext(dry_run=False)
         context.set("x", 5)
         
         executor.execute(ast, context)
@@ -104,7 +104,7 @@ task test:
     
     def test_create_snapshot_primitives(self):
         """Test snapshot creation with primitive types"""
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set("int_val", 42)
         context.set("str_val", "hello")
         context.set("bool_val", True)
@@ -119,7 +119,7 @@ task test:
     
     def test_create_snapshot_collections(self):
         """Test snapshot creation with simple collections"""
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set("list_val", [1, 2, 3])
         context.set("dict_val", {"a": 1, "b": 2})
         
@@ -181,7 +181,7 @@ class TestDryRunMode:
     
     def test_dry_run_allows_reads(self):
         """Test that dry-run mode allows variable reads"""
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set("x", 10)
         
         # Switch to dry-run mode
@@ -218,7 +218,7 @@ task test:
     
     def test_can_mutate_check(self):
         """Test can_mutate method"""
-        context_normal = ExecutionContext()
+        context_normal = ExecutionContext(dry_run=False)
         context_dry = ExecutionContext(dry_run=True)
         
         assert context_normal.can_mutate() is True
@@ -309,7 +309,6 @@ class TestIntegration:
     def test_trace_and_dry_run_together(self):
         """Test using tracing and dry-run together"""
         # Create if node to test (control flow works better for tracing)
-        from ape.parser.ast_nodes import IfNode, ExpressionNode
         
         collector = TraceCollector()
         executor = RuntimeExecutor(trace=collector, dry_run=True)
@@ -333,7 +332,7 @@ class TestIntegration:
     def test_all_features_together(self):
         """Test tracing, dry-run, and capabilities together"""
         collector = TraceCollector()
-        executor = RuntimeExecutor(trace=collector, dry_run=True)
+        _executor = RuntimeExecutor(trace=collector, dry_run=True)
         context = ExecutionContext(dry_run=True)
         context.allow("io.read")
         

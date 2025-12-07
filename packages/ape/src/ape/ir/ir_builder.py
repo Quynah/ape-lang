@@ -5,7 +5,7 @@ Transforms AST nodes into IR (Intermediate Representation) nodes.
 The IR is used by the semantic validator and code generator.
 """
 
-from typing import List, Optional
+from typing import List
 from ape.parser import ast_nodes as AST
 from ape.compiler.ir_nodes import (
     ProjectNode, ModuleNode, EntityNode, TaskNode, FlowNode,

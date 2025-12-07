@@ -136,7 +136,7 @@ class TestRuntimeExecution:
     def test_execute_if_true(self):
         """Test executing if statement with true condition"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('x', 5)
         
         # Create if node: if x < 10
@@ -154,7 +154,7 @@ class TestRuntimeExecution:
     def test_execute_if_false(self):
         """Test executing if statement with false condition"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('x', 15)
         
         # Create if node: if x < 10
@@ -172,7 +172,7 @@ class TestRuntimeExecution:
     def test_execute_if_else(self):
         """Test executing if-else statement"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('executed', False)
         context.set('x', 15)
         
@@ -195,7 +195,7 @@ class TestRuntimeExecution:
     def test_execute_while_loop(self):
         """Test executing while loop"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('counter', 0)
         
         # Create while loop: while counter < 3
@@ -217,7 +217,7 @@ class TestRuntimeExecution:
     def test_while_max_iterations(self):
         """Test while loop respects max_iterations"""
         executor = RuntimeExecutor(max_iterations=10)
-        context = ExecutionContext(max_iterations=10)
+        context = ExecutionContext(max_iterations=10, dry_run=False)
         context.set('counter', 0)
         
         # Create infinite loop: while true
@@ -231,7 +231,7 @@ class TestRuntimeExecution:
     def test_execute_for_loop(self):
         """Test executing for loop"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('items', [1, 2, 3])
         
         # Create for loop: for item in items
@@ -249,7 +249,7 @@ class TestRuntimeExecution:
     def test_for_max_iterations(self):
         """Test for loop respects max_iterations"""
         executor = RuntimeExecutor(max_iterations=5)
-        context = ExecutionContext(max_iterations=5)
+        context = ExecutionContext(max_iterations=5, dry_run=False)
         context.set('items', list(range(100)))
         
         # Create for loop over 100 items
@@ -267,7 +267,7 @@ class TestRuntimeExecution:
     def test_evaluate_expression_literal(self):
         """Test evaluating literal expression"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         
         expr = ExpressionNode(value=42)
         result = executor.evaluate_expression(expr, context)
@@ -276,7 +276,7 @@ class TestRuntimeExecution:
     def test_evaluate_expression_variable(self):
         """Test evaluating variable expression"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('x', 100)
         
         expr = ExpressionNode(identifier='x')
@@ -286,7 +286,7 @@ class TestRuntimeExecution:
     def test_evaluate_expression_arithmetic(self):
         """Test evaluating arithmetic expression"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         
         # 5 + 3
         expr = ExpressionNode(
@@ -300,7 +300,7 @@ class TestRuntimeExecution:
     def test_evaluate_expression_comparison(self):
         """Test evaluating comparison expression"""
         executor = RuntimeExecutor()
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         
         # 5 < 10
         expr = ExpressionNode(
@@ -313,7 +313,7 @@ class TestRuntimeExecution:
     
     def test_execution_context_scope(self):
         """Test execution context scoping"""
-        context = ExecutionContext()
+        context = ExecutionContext(dry_run=False)
         context.set('x', 10)
         
         # Create child scope
@@ -359,13 +359,9 @@ class TestRuntimeSafety:
     
     def test_context_isolation(self):
         """Test execution context is isolated"""
-        import os
-        import sys
-        
-        executor = RuntimeExecutor()
-        context = ExecutionContext()
-        
-        # Context should not have access to os, sys, etc.
+
+        _executor = RuntimeExecutor()
+        context = ExecutionContext(dry_run=False)        # Context should not have access to os, sys, etc.
         assert 'os' not in context.variables
         assert 'sys' not in context.variables
         assert '__builtins__' not in context.variables

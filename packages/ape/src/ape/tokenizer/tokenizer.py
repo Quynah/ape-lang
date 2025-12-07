@@ -8,7 +8,7 @@ Follows strict Ape principle: all tokens are explicit and unambiguous.
 import re
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 
 class TokenType(Enum):

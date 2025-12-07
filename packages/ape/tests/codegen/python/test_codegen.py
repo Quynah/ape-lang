@@ -11,10 +11,10 @@ import os
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from ape.codegen.python_codegen import PythonCodeGenerator, GeneratedFile
+from ape.codegen.python_codegen import PythonCodeGenerator
 from ape.compiler.ir_nodes import (
     ProjectNode, ModuleNode, EntityNode, TaskNode, FlowNode,
-    PolicyNode, EnumNode, FieldNode, StepNode, ConstraintNode, Location
+    PolicyNode, EnumNode, FieldNode, StepNode
 )
 from ape.parser import parse_ape_source
 from ape.ir import IRBuilder

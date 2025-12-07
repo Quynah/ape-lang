@@ -7,10 +7,8 @@ to canonical APE while preserving determinism and producing identical ASTs.
 
 import pytest
 from ape.lang import get_adapter, list_supported_languages
-from ape.lang.base import LanguageAdapter
 from ape.errors import ValidationError
 from ape.parser.parser import parse_ape_source
-from ape.parser.ast_nodes import IfNode, WhileNode, ForNode
 from ape import run
 
 
@@ -290,8 +288,8 @@ task main:
             - set result to 0
 """
         # Should not raise error
-        result = run(source, context={'x': 10}, language='en')
-    
+        _result = run(source, context={'x': 10}, language='en')
+
     def test_run_with_dutch(self):
         """Test run() with Dutch."""
         source = """
@@ -303,8 +301,8 @@ task main:
             - set result to 0
 """
         # Should not raise error
-        result = run(source, context={'x': 10}, language='nl')
-    
+        _result = run(source, context={'x': 10}, language='nl')
+
     def test_run_with_french(self):
         """Test run() with French."""
         source = """
@@ -315,8 +313,8 @@ task main:
         sinon:
             - set result to 0
 """
-        result = run(source, context={'x': 10}, language='fr')
-    
+        _result = run(source, context={'x': 10}, language='fr')
+
     def test_run_with_unsupported_language_fails(self):
         """Test run() fails with unsupported language."""
         source = "if x > 5:\n    - set y to 10"

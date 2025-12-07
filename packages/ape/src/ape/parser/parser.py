@@ -5,7 +5,7 @@ Recursive descent parser for Ape grammar v0.3.
 Transforms tokens into Abstract Syntax Tree (AST).
 """
 
-from typing import List, Optional, Any
+from typing import List, Optional
 from ape.tokenizer.tokenizer import Token, TokenType, Tokenizer
 from ape.parser.ast_nodes import *
 

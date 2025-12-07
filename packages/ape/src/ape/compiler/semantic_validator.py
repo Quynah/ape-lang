@@ -9,8 +9,8 @@ What is forbidden, is strictly forbidden. What is not declared, does not exist."
 from typing import List, Dict, Set, Optional
 from .ir_nodes import (
     ProjectNode, ModuleNode, EntityNode, TaskNode, FlowNode,
-    PolicyNode, EnumNode, DeviationNode, FieldNode, StepNode,
-    ConstraintNode, Location
+    PolicyNode, EnumNode, DeviationNode, StepNode,
+    Location
 )
 from .errors import (
     ApeError, ErrorCode, ErrorCategory, ErrorCollector

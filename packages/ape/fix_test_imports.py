@@ -1,5 +1,4 @@
 """Fix remaining imports in test files"""
-import re
 from pathlib import Path
 
 fixes = [

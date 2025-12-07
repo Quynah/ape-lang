@@ -5,7 +5,7 @@ Predefined runtime configurations for common use cases.
 Convenience layer over ExecutionContext and RuntimeExecutor settings.
 """
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List
 from ape.runtime.context import ExecutionContext
 from ape.runtime.trace import TraceCollector
 from ape.errors import ProfileError

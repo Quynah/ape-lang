@@ -17,11 +17,11 @@ If a module is not found, a LinkError is raised with no fallbacks.
 
 import os
 from pathlib import Path
-from typing import List, Dict, Set, Optional, Tuple
+from typing import List, Dict, Set, Optional
 from dataclasses import dataclass, field
 
 from ape.parser.parser import Parser
-from ape.parser.ast_nodes import ModuleNode, ImportNode, QualifiedIdentifierNode
+from ape.parser.ast_nodes import ModuleNode
 from ape.tokenizer.tokenizer import Tokenizer
 
 
@@ -293,7 +293,7 @@ class Linker:
             
             if module.module_name in visiting:
                 # Cycle detected during sort (shouldn't happen)
-                raise LinkError(f"Internal error: cycle detected during topological sort")
+                raise LinkError("Internal error: cycle detected during topological sort")
             
             visiting.add(module.module_name)
             

@@ -2,9 +2,194 @@
 APE Standard Library - Math Module
 
 Pure mathematical functions.
+
+All math operations in APE are:
+- Deterministic (same inputs → same output)
+- Type-strict (int and float are distinct types)
+- Explicit (errors on division by zero, type mismatch)
+- Integer-first (prefer int over float when possible)
 """
 
-from typing import Any, List, Union
+from typing import List, Union
+from ape.std.errors import MathTypeError, DivisionByZeroError
+
+
+def add(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """
+    Deterministic addition.
+    
+    Args:
+        a: First number
+        b: Second number
+        
+    Returns:
+        a + b (int if both int, float otherwise)
+        
+    Raises:
+        MathTypeError: If a or b is not a number
+        
+    Examples:
+        add(1, 2) → 3
+        add(1.5, 2.5) → 4.0
+        add(1, 2.5) → 3.5
+    """
+    if not isinstance(a, (int, float)) or isinstance(a, bool):
+        raise MathTypeError("add", "a", type(a).__name__)
+    if not isinstance(b, (int, float)) or isinstance(b, bool):
+        raise MathTypeError("add", "b", type(b).__name__)
+    
+    return a + b
+
+
+def sub(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """
+    Deterministic subtraction.
+    
+    Args:
+        a: First number (minuend)
+        b: Second number (subtrahend)
+        
+    Returns:
+        a - b (int if both int, float otherwise)
+        
+    Raises:
+        MathTypeError: If a or b is not a number
+        
+    Examples:
+        sub(5, 3) → 2
+        sub(5.5, 2.5) → 3.0
+        sub(5, 2.5) → 2.5
+    """
+    if not isinstance(a, (int, float)) or isinstance(a, bool):
+        raise MathTypeError("sub", "a", type(a).__name__)
+    if not isinstance(b, (int, float)) or isinstance(b, bool):
+        raise MathTypeError("sub", "b", type(b).__name__)
+    
+    return a - b
+
+
+def mul(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """
+    Deterministic multiplication.
+    
+    Args:
+        a: First number
+        b: Second number
+        
+    Returns:
+        a * b (int if both int, float otherwise)
+        
+    Raises:
+        MathTypeError: If a or b is not a number
+        
+    Examples:
+        mul(3, 4) → 12
+        mul(2.5, 4.0) → 10.0
+        mul(2, 3.5) → 7.0
+    """
+    if not isinstance(a, (int, float)) or isinstance(a, bool):
+        raise MathTypeError("mul", "a", type(a).__name__)
+    if not isinstance(b, (int, float)) or isinstance(b, bool):
+        raise MathTypeError("mul", "b", type(b).__name__)
+    
+    return a * b
+
+
+def div(a: Union[int, float], b: Union[int, float]) -> float:
+    """
+    Deterministic division (always returns float).
+    
+    Args:
+        a: Numerator
+        b: Denominator
+        
+    Returns:
+        a / b as float
+        
+    Raises:
+        MathTypeError: If a or b is not a number
+        DivisionByZeroError: If b is zero
+        
+    Examples:
+        div(10, 2) → 5.0
+        div(10, 3) → 3.3333333333333335
+        div(10, 0) → DivisionByZeroError
+        
+    Note:
+        Always returns float for consistent behavior.
+        For integer division, use div_int().
+    """
+    if not isinstance(a, (int, float)) or isinstance(a, bool):
+        raise MathTypeError("div", "a", type(a).__name__)
+    if not isinstance(b, (int, float)) or isinstance(b, bool):
+        raise MathTypeError("div", "b", type(b).__name__)
+    
+    if b == 0:
+        raise DivisionByZeroError(a)
+    
+    return a / b
+
+
+def div_int(a: int, b: int) -> int:
+    """
+    Integer division (floor division).
+    
+    Args:
+        a: Numerator (must be int)
+        b: Denominator (must be int)
+        
+    Returns:
+        a // b as int
+        
+    Raises:
+        MathTypeError: If a or b is not an integer
+        DivisionByZeroError: If b is zero
+        
+    Examples:
+        div_int(10, 3) → 3
+        div_int(10, 2) → 5
+        div_int(-10, 3) → -4
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise MathTypeError("div_int", "a", type(a).__name__)
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise MathTypeError("div_int", "b", type(b).__name__)
+    
+    if b == 0:
+        raise DivisionByZeroError(a)
+    
+    return a // b
+
+
+def mod(a: int, b: int) -> int:
+    """
+    Modulo operation (remainder).
+    
+    Args:
+        a: Dividend (must be int)
+        b: Divisor (must be int)
+        
+    Returns:
+        a % b as int
+        
+    Raises:
+        MathTypeError: If a or b is not an integer
+        DivisionByZeroError: If b is zero
+        
+    Examples:
+        mod(10, 3) → 1
+        mod(10, 5) → 0
+        mod(-10, 3) → 2
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise MathTypeError("mod", "a", type(a).__name__)
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise MathTypeError("mod", "b", type(b).__name__)
+    
+    if b == 0:
+        raise DivisionByZeroError(a)
+    
+    return a % b
 
 
 def abs_value(x: Union[int, float]) -> Union[int, float]:
@@ -127,6 +312,12 @@ def sum_values(values: List[Union[int, float]]) -> Union[int, float]:
 
 
 __all__ = [
+    'add',
+    'sub',
+    'mul',
+    'div',
+    'div_int',
+    'mod',
     'abs_value',
     'min_value',
     'max_value',

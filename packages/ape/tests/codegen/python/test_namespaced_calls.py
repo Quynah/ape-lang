@@ -11,7 +11,7 @@ import os
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from ape.codegen.python_codegen import PythonCodeGenerator, GeneratedFile, mangle_name
+from ape.codegen.python_codegen import PythonCodeGenerator, mangle_name
 from ape.compiler.ir_nodes import (
     ProjectNode, ModuleNode, EntityNode, TaskNode, FieldNode
 )

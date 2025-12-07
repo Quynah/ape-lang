@@ -211,8 +211,8 @@ def test_tutorial_executes_without_error(tutorial_path):
     context = SCENARIO_CONTEXTS.get(scenario_name, {})
     
     # Execute the tutorial
-    result = run(source, context=context)
-    
+    _result = run(source, context=context)
+
     # Basic validation: execution completed without errors
     # Note: result can be None for tutorials without explicit returns
 
@@ -293,7 +293,7 @@ def test_all_tutorials_have_expect_comments():
             missing.append(tutorial_path.name)
     
     assert len(missing) == 0, (
-        f"The following tutorials are missing EXPECT comments:\n"
+        "The following tutorials are missing EXPECT comments:\n"
         + "\n".join(f"  - {name}" for name in missing)
     )
 
@@ -325,7 +325,7 @@ def test_each_scenario_has_readme():
             missing_readme.append(tutorial_path.parent.name)
     
     assert len(missing_readme) == 0, (
-        f"The following scenarios are missing README.md:\n"
+        "The following scenarios are missing README.md:\n"
         + "\n".join(f"  - {name}" for name in missing_readme)
     )
 

@@ -8,7 +8,7 @@ Enforces Ape's strictness principles:
 - Ensures all behavior is explicitly declared
 """
 
-from typing import List, Set, Optional, Dict
+from typing import List, Dict
 from .ir_nodes import (
     ProjectNode, ModuleNode, TaskNode, FlowNode, StepNode,
     PolicyNode, DeviationNode

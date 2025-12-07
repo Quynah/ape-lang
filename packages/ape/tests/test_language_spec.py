@@ -20,7 +20,6 @@ from ape.language_spec import (
     PRIMITIVE_TYPES,
     STRUCTURED_TYPES,
     OPERATORS,
-    MULTI_LANGUAGE_KEYWORDS,
     is_top_level_keyword,
     is_section_keyword,
     is_control_flow_keyword,

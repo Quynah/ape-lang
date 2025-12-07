@@ -9,7 +9,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from ape.parser import Parser, parse_ape_source
+from ape.parser import parse_ape_source
 from ape.ir import IRBuilder
 from ape.compiler.ir_nodes import ProjectNode
 from ape.compiler.semantic_validator import SemanticValidator

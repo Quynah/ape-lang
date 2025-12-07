@@ -1,12 +1,12 @@
 """
-APE JSON Module (v1.0.0 Scaffold)
+APE JSON Module (Minimal & Ethical Implementation)
 
-JSON parsing, serialization, and manipulation utilities.
+JSON parsing and read-only access utilities.
 
-Author: David Van Aelst
-Status: Scaffold - implementation pending
+Pure functions only - no mutation, no side effects.
 """
 
+import json as python_json
 from typing import Any, Dict, List, Union, Optional
 
 
@@ -17,107 +17,89 @@ def parse(json_string: str) -> JSONValue:
     """
     Parse a JSON string into APE data structures.
     
+    Pure read-only JSON parsing with no side effects.
+    
     Example:
-        data = json.parse('{"name": "Alice", "age": 30}')
-        print(data["name"])  # "Alice"
+        data = parse('{"name": "Alice", "age": 30}')
+        # Returns: {"name": "Alice", "age": 30}
     
     Args:
         json_string: Valid JSON string
     
     Returns:
-        Parsed JSON as Map, List, or primitive value
+        Parsed JSON as dict, list, or primitive value
     
     Raises:
-        ParseError: If JSON is malformed
-    
-    TODO: Implement JSON parser
+        TypeError: If json_string is not a string
+        ValueError: If JSON is malformed
     """
-    raise NotImplementedError("json.parse() not yet implemented")
+    if not isinstance(json_string, str):
+        raise TypeError(f"parse requires string, got {type(json_string).__name__}")
+    
+    try:
+        return python_json.loads(json_string)
+    except python_json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON: {e.msg} at line {e.lineno}, column {e.colno}")
 
 
-def stringify(data: JSONValue, indent: Optional[int] = None) -> str:
+def get(obj: Union[Dict[str, Any], List[Any]], path: Union[str, List[str]], default: Any = None) -> Any:
     """
-    Convert APE data structures to JSON string.
+    Get value from nested JSON using path.
     
-    Example:
-        data = {"name": "Alice", "age": 30}
-        json_str = json.stringify(data, indent=2)
+    Read-only access - does not modify the original object.
     
-    Args:
-        data: Data to serialize (Map, List, or primitive)
-        indent: Number of spaces for indentation (None for compact)
-    
-    Returns:
-        JSON string representation
-    
-    TODO: Implement JSON serializer
-    """
-    raise NotImplementedError("json.stringify() not yet implemented")
-
-
-def get(data: Dict[str, Any], path: str, default: Any = None) -> Any:
-    """
-    Get value from nested JSON using dot notation path.
+    Path can be:
+    - Dot-separated string: "user.address.city"
+    - List of keys: ["user", "address", "city"]
     
     Example:
         data = {"user": {"name": "Alice", "address": {"city": "NYC"}}}
-        city = json.get(data, "user.address.city")  # "NYC"
-        missing = json.get(data, "user.phone", "N/A")  # "N/A"
+        city = get(data, "user.address.city")  # "NYC"
+        city = get(data, ["user", "address", "city"])  # "NYC"
+        missing = get(data, "user.phone", "N/A")  # "N/A"
     
     Args:
-        data: JSON object (Map)
-        path: Dot-separated path (e.g., "user.address.city")
+        obj: JSON object (dict or list)
+        path: Dot-separated string or list of keys
         default: Value to return if path not found
     
     Returns:
         Value at path, or default if not found
     
-    TODO: Implement path-based access
+    Raises:
+        TypeError: If obj is not dict/list or path is not string/list
     """
-    raise NotImplementedError("json.get() not yet implemented")
+    if not isinstance(obj, (dict, list)):
+        raise TypeError(f"get requires dict or list for obj, got {type(obj).__name__}")
+    
+    # Parse path
+    if isinstance(path, str):
+        keys = path.split(".")
+    elif isinstance(path, list):
+        keys = path
+    else:
+        raise TypeError(f"get requires string or list for path, got {type(path).__name__}")
+    
+    # Traverse path
+    current = obj
+    for key in keys:
+        if isinstance(current, dict):
+            if key not in current:
+                return default
+            current = current[key]
+        elif isinstance(current, list):
+            # Try to convert key to int for list indexing
+            try:
+                index = int(key)
+                if index < 0 or index >= len(current):
+                    return default
+                current = current[index]
+            except (ValueError, TypeError):
+                return default
+        else:
+            return default
+    
+    return current
 
 
-def set(data: Dict[str, Any], path: str, value: Any) -> Dict[str, Any]:
-    """
-    Set value in nested JSON using dot notation path.
-    
-    Example:
-        data = {"user": {"name": "Alice"}}
-        updated = json.set(data, "user.email", "alice@example.com")
-        # {"user": {"name": "Alice", "email": "alice@example.com"}}
-    
-    Args:
-        data: JSON object (Map)
-        path: Dot-separated path
-        value: Value to set
-    
-    Returns:
-        Updated data structure (creates nested objects as needed)
-    
-    TODO: Implement path-based modification
-    """
-    raise NotImplementedError("json.set() not yet implemented")
-
-
-def has(data: Dict[str, Any], path: str) -> bool:
-    """
-    Check if a path exists in JSON data.
-    
-    Example:
-        data = {"user": {"name": "Alice"}}
-        json.has(data, "user.name")  # true
-        json.has(data, "user.email")  # false
-    
-    Args:
-        data: JSON object (Map)
-        path: Dot-separated path
-    
-    Returns:
-        True if path exists, False otherwise
-    
-    TODO: Implement path existence check
-    """
-    raise NotImplementedError("json.has() not yet implemented")
-
-
-__all__ = ['parse', 'stringify', 'get', 'set', 'has']
+__all__ = ['parse', 'get']

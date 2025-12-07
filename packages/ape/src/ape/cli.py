@@ -8,7 +8,6 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 from ape.parser.parser import parse_ape_source
 from ape.ir.ir_builder import IRBuilder
