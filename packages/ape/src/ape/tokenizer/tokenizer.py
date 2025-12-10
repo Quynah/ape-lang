@@ -40,6 +40,8 @@ class TokenType(Enum):
     WHILE = auto()
     FOR = auto()
     IN = auto()
+    RETURN = auto()
+    FN = auto()  # Function definition keyword
     
     # Literals
     IDENTIFIER = auto()
@@ -54,6 +56,12 @@ class TokenType(Enum):
     DASH = auto()
     PIPE = auto()
     ARROW = auto()
+    LPAREN = auto()    # (
+    RPAREN = auto()    # )
+    LBRACKET = auto()  # [
+    RBRACKET = auto()  # ]
+    LBRACE = auto()    # {
+    RBRACE = auto()    # }
     
     # Comparison and arithmetic operators
     LT = auto()           # <
@@ -62,6 +70,7 @@ class TokenType(Enum):
     GE = auto()           # >=
     EQ = auto()           # ==
     NE = auto()           # !=
+    ASSIGN = auto()       # = (assignment)
     PLUS = auto()         # +
     MINUS = auto()        # - (separate from DASH for clarity)
     STAR = auto()         # *
@@ -128,6 +137,8 @@ class Tokenizer:
         'while': TokenType.WHILE,
         'for': TokenType.FOR,
         'in': TokenType.IN,
+        'return': TokenType.RETURN,
+        'fn': TokenType.FN,
         'true': TokenType.BOOLEAN,
         'false': TokenType.BOOLEAN,
         'True': TokenType.BOOLEAN,
@@ -146,6 +157,9 @@ class Tokenizer:
         (r'==', TokenType.EQ),
         (r'!=', TokenType.NE),
         
+        # Assignment (must come after == to avoid matching single =)
+        (r'=', TokenType.ASSIGN),
+        
         # String literals (single or double quoted)
         (r'"(?:[^"\\]|\\.)*"', TokenType.STRING),
         (r"'(?:[^'\\]|\\.)*'", TokenType.STRING),
@@ -161,6 +175,14 @@ class Tokenizer:
         (r':', TokenType.COLON),
         (r',', TokenType.COMMA),
         (r'\.', TokenType.DOT),
+        (r'-', TokenType.DASH),
+        (r'\|', TokenType.PIPE),
+        (r'\(', TokenType.LPAREN),
+        (r'\)', TokenType.RPAREN),
+        (r'\[', TokenType.LBRACKET),
+        (r'\]', TokenType.RBRACKET),
+        (r'\{', TokenType.LBRACE),
+        (r'\}', TokenType.RBRACE),
         (r'-', TokenType.DASH),
         (r'\|', TokenType.PIPE),
         

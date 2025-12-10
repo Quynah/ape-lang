@@ -9,7 +9,7 @@ from ape.runtime.core import RunContext, FunctionSignature, ApeModule
 from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsExceeded
 from ape.runtime.executor import RuntimeExecutor
 from ape.runtime.trace import TraceCollector, TraceEvent, create_snapshot
-from ape.runtime.explain import ExplanationStep, ExplanationOutput, ExplanationEngine
+from ape.runtime.explain import ExplanationStep, ExplanationEngine
 from ape.runtime.replay import ReplayEngine
 from ape.runtime.profile import (
     RUNTIME_PROFILES,
@@ -56,7 +56,6 @@ __all__ = [
     
     # Explanation engine
     'ExplanationStep',
-    'ExplanationOutput',
     'ExplanationEngine',
     
     # Replay engine

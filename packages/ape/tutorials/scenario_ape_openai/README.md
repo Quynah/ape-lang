@@ -320,7 +320,7 @@ def audit_ai_decision(request_id: str):
 
 **Guarantees:** Deterministic governance, traceable decisions, replay-safe  
 **Real-world use:** AI chatbots, content generation, code assistants  
-**APE version:** v1.0.0  
+**APE version:** v1.0.3  
 **OpenAI SDK:** Compatible with openai>=1.0.0
 
 ---

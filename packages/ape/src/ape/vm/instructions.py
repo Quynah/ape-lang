@@ -1,17 +1,4 @@
 """
-SCAFFOLDED MODULE — NOT YET INTEGRATED
-
-This file is intentionally scaffolded.
-Structure, interfaces, and intent are defined,
-but this module is not yet wired into the active runtime.
-
-⚠️ Do NOT assume runtime execution.
-⚠️ Do NOT extend behavior without integration work.
-
-Status: SCAFFOLDED
-"""
-
-"""
 APE VM Instruction Specifications (v1.0.0 Scaffold)
 
 Detailed specifications for VM instructions.

@@ -9,12 +9,21 @@ import re
 from typing import Any, List, Optional
 from ape.parser.ast_nodes import (
     ASTNode, IfNode, WhileNode, ForNode, ExpressionNode,
-    StepNode, TaskDefNode, ModuleNode
+    StepNode, TaskDefNode, ModuleNode, FunctionDefNode, ReturnNode,
+    AssignmentNode, ListNode, TupleNode, IndexAccessNode
 )
 from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsExceeded
 from ape.runtime.trace import TraceCollector, TraceEvent, create_snapshot
 from ape.errors import CapabilityError
 from ape.std import logic, collections, strings, math
+from ape.types import ApeList, ApeTuple
+
+
+class ReturnValue(Exception):
+    """Exception used to implement return statements in functions."""
+    def __init__(self, value):
+        self.value = value
+        super().__init__()
 
 
 class RuntimeExecutor:
@@ -47,34 +56,19 @@ class RuntimeExecutor:
         self, 
         max_iterations: int = 10_000,
         trace: Optional[TraceCollector] = None,
-        dry_run: bool = True,  # ETHICAL DEFAULT: dry-run unless explicitly allowed
-        allow_execution: bool = False
+        dry_run: bool = False
     ):
         """
         Initialize runtime executor.
         
-        OBSERVABILITY CONTRACT:
-        - Default mode is dry-run (no side effects)
-        - Real execution requires explicit allow_execution=True
-        - This is an ethical contract: no mutations without consent
-        
         Args:
             max_iterations: Maximum loop iterations (safety limit)
             trace: Optional trace collector for execution observability
-            dry_run: If True, run in dry-run mode (no mutations). Default is True.
-            allow_execution: If True, enables real execution (overrides dry_run).
-                           This must be explicitly set for side effects.
+            dry_run: If True, run in dry-run mode (no mutations)
         """
         self.max_iterations = max_iterations
         self.trace = trace
-        
-        # Ethical default enforcement
-        if allow_execution:
-            # Explicit permission granted for execution
-            self.dry_run = False
-        else:
-            # Default to dry-run (safe mode)
-            self.dry_run = True if dry_run else False
+        self.dry_run = dry_run
     
     def execute(self, node: ASTNode, context: Optional[ExecutionContext] = None) -> Any:
         """
@@ -113,6 +107,12 @@ class RuntimeExecutor:
                 result = self.execute_while(node, context)
             elif isinstance(node, ForNode):
                 result = self.execute_for(node, context)
+            elif isinstance(node, FunctionDefNode):
+                result = self.execute_function_def(node, context)
+            elif isinstance(node, ReturnNode):
+                result = self.execute_return(node, context)
+            elif isinstance(node, AssignmentNode):
+                result = self.execute_assignment(node, context)
             elif isinstance(node, ExpressionNode):
                 result = self.evaluate_expression(node, context)
             elif isinstance(node, StepNode):
@@ -198,8 +198,8 @@ class RuntimeExecutor:
                     node
                 )
             
-            # Execute body in child scope
-            result = self.execute_block(node.body, context.create_child_scope())
+            # Execute body in same context (variables must persist across iterations)
+            result = self.execute_block(node.body, context)
         
         return result
     
@@ -246,6 +246,105 @@ class RuntimeExecutor:
         
         return result
     
+    def execute_function_def(self, node: FunctionDefNode, context: ExecutionContext) -> None:
+        """
+        Register a function definition in the context.
+        
+        Args:
+            node: FunctionDefNode to register
+            context: Execution context
+        """
+        # Store function definition in context
+        context.set(node.name, node)
+        return None
+    
+    def execute_return(self, node: ReturnNode, context: ExecutionContext) -> Any:
+        """
+        Execute return statement.
+        
+        Args:
+            node: ReturnNode to execute
+            context: Execution context
+            
+        Returns:
+            Never returns normally - raises ReturnValue exception
+            
+        Raises:
+            ReturnValue: Contains the return value(s)
+        """
+        # Evaluate all return values
+        values = [self.evaluate_expression(expr, context) for expr in node.values]
+        
+        # Single value return
+        if len(values) == 1:
+            raise ReturnValue(values[0])
+        
+        # Tuple return (multiple values)
+        elif len(values) > 1:
+            raise ReturnValue(ApeTuple(tuple(values)))
+        
+        # Empty return
+        else:
+            raise ReturnValue(None)
+    
+    def execute_assignment(self, node: AssignmentNode, context: ExecutionContext) -> None:
+        """
+        Execute assignment statement.
+        
+        Supports:
+        - Single assignment: x = 5
+        - Tuple destructuring: a, b, c = fn()
+        
+        Args:
+            node: AssignmentNode to execute
+            context: Execution context
+            
+        Raises:
+            ExecutionError: If tuple destructuring arity mismatch
+        """
+        # Evaluate right-hand side
+        value = self.evaluate_expression(node.value, context)
+        
+        # Single target
+        if len(node.targets) == 1:
+            if not self.dry_run and not context.dry_run:
+                context.set(node.targets[0], value)
+        
+        # Tuple destructuring
+        else:
+            # Value must be tuple or ApeList with matching arity
+            if isinstance(value, ApeTuple):
+                if len(value) != len(node.targets):
+                    raise ExecutionError(
+                        f"Tuple destructuring arity mismatch: {len(node.targets)} targets, "
+                        f"{len(value)} values",
+                        node
+                    )
+                
+                if not self.dry_run and not context.dry_run:
+                    for i, target in enumerate(node.targets):
+                        context.set(target, value[i])
+            
+            elif isinstance(value, ApeList):
+                if len(value) != len(node.targets):
+                    raise ExecutionError(
+                        f"List destructuring arity mismatch: {len(node.targets)} targets, "
+                        f"{len(value)} values",
+                        node
+                    )
+                
+                if not self.dry_run and not context.dry_run:
+                    for i, target in enumerate(node.targets):
+                        context.set(target, value[i])
+            
+            else:
+                raise ExecutionError(
+                    f"Cannot destructure non-tuple/non-list value of type {type(value).__name__}",
+                    node
+                )
+        
+        return None
+    
     def execute_block(self, block: List[ASTNode], context: ExecutionContext) -> Any:
         """
         Execute a block of statements.
@@ -256,6 +355,9 @@ class RuntimeExecutor:
             
         Returns:
             Result of last statement (or None)
+            
+        Note:
+            ReturnValue exceptions propagate up (not caught here)
         """
         result = None
         for statement in block:
@@ -384,15 +486,16 @@ class RuntimeExecutor:
                 from ape.tokenizer.tokenizer import Tokenizer
                 from ape.parser.parser import Parser
                 
-                # Create minimal task wrapper for parsing
-                wrapper = f"task t:\n    steps:\n        if {text}:\n            - noop"
+                # Create minimal assignment wrapper for parsing expressions
+                # This allows parsing of any expression without needing conditional context
+                wrapper = f"fn dummy():\n    x = {text}\n    return x"
                 tokenizer = Tokenizer(wrapper)
                 tokens = tokenizer.tokenize()
                 parser = Parser(tokens)
                 ast = parser.parse()
                 
-                # Extract condition expression from if statement
-                expr_node = ast.tasks[0].steps[0].condition
+                # Extract expression from assignment
+                expr_node = ast.functions[0].body[0].value
                 
                 # Evaluate using existing infrastructure
                 return self.evaluate_expression(expr_node, context)
@@ -405,7 +508,7 @@ class RuntimeExecutor:
         """
         Execute a module node.
         
-        For now, this is a placeholder that executes tasks in the module.
+        Registers all functions, then executes tasks.
         
         Args:
             node: ModuleNode to execute
@@ -414,6 +517,11 @@ class RuntimeExecutor:
         Returns:
             Result of executing module tasks
         """
+        # Register all function definitions
+        if hasattr(node, 'functions'):
+            for func in node.functions:
+                self.execute(func, context)
+        
         # Execute all tasks in module
         result = None
         if hasattr(node, 'tasks'):
@@ -550,6 +658,10 @@ class RuntimeExecutor:
         - Literals (values)
         - Identifiers (variable lookup)
         - Binary operations (+, -, *, /, <, >, ==, !=, etc.)
+        - Function calls
+        - Lists
+        - Tuples
+        - Index access
         
         Args:
             expr: Expression to evaluate
@@ -558,6 +670,38 @@ class RuntimeExecutor:
         Returns:
             Evaluated value
         """
+        # List literal
+        if expr.list_node:
+            elements = [self.evaluate_expression(e, context) for e in expr.list_node.elements]
+            return ApeList(elements)
+        
+        # Tuple literal
+        if expr.tuple_node:
+            elements = [self.evaluate_expression(e, context) for e in expr.tuple_node.elements]
+            return ApeTuple(tuple(elements))
+        
+        # Index access
+        if expr.index_access:
+            target = self.evaluate_expression(expr.index_access.target, context)
+            index = self.evaluate_expression(expr.index_access.index, context)
+            
+            # Validate index is integer
+            if not isinstance(index, int):
+                raise ExecutionError(
+                    f"Index must be integer, got {type(index).__name__}",
+                    expr
+                )
+            
+            # Perform index access
+            try:
+                return target[index]
+            except (IndexError, TypeError) as e:
+                raise ExecutionError(str(e), expr)
+        
+        # Function call
+        if expr.function_name:
+            return self._call_function(expr.function_name, expr.arguments, context, expr)
+        
         # Literal value
         if expr.value is not None:
             return expr.value
@@ -574,6 +718,134 @@ class RuntimeExecutor:
             return self._apply_operator(expr.operator, left_val, right_val, expr)
         
         raise ExecutionError("Invalid expression: no value, identifier, or operation", expr)
+    
+    def _call_function(self, name: str, arg_exprs: List[ExpressionNode], 
+                      context: ExecutionContext, node: ASTNode) -> Any:
+        """
+        Call a function (user-defined or stdlib).
+        
+        Args:
+            name: Function name
+            arg_exprs: Argument expressions
+            context: Execution context
+            node: AST node for error reporting
+            
+        Returns:
+            Function result
+            
+        Raises:
+            ExecutionError: If function not found or call fails
+        """
+        # Evaluate arguments
+        args = [self.evaluate_expression(arg, context) for arg in arg_exprs]
+        
+        # Check for stdlib call
+        if self._is_stdlib_call(name):
+            return self._call_stdlib_function(name, args)
+        
+        # Check for built-in operations
+        if name == 'len':
+            if len(args) != 1:
+                raise ExecutionError(f"len() takes exactly 1 argument ({len(args)} given)", node)
+            obj = args[0]
+            if hasattr(obj, '__len__'):
+                return len(obj)
+            raise ExecutionError(f"Object of type {type(obj).__name__} has no len()", node)
+        
+        elif name == 'map':
+            if len(args) != 2:
+                raise ExecutionError(f"map() takes exactly 2 arguments ({len(args)} given)", node)
+            lst, fn = args
+            if not isinstance(lst, ApeList):
+                raise ExecutionError(f"map() first argument must be List, got {type(lst).__name__}", node)
+            # fn should be a function - for now assume it's a FunctionDefNode stored in context
+            if isinstance(fn, FunctionDefNode):
+                result_items = []
+                for item in lst:
+                    result_items.append(self._call_user_function(fn, [item], context, node))
+                return ApeList(result_items)
+            raise ExecutionError("map() second argument must be a function", node)
+        
+        elif name == 'filter':
+            if len(args) != 2:
+                raise ExecutionError(f"filter() takes exactly 2 arguments ({len(args)} given)", node)
+            lst, fn = args
+            if not isinstance(lst, ApeList):
+                raise ExecutionError(f"filter() first argument must be List, got {type(lst).__name__}", node)
+            if isinstance(fn, FunctionDefNode):
+                result_items = []
+                for item in lst:
+                    if self._call_user_function(fn, [item], context, node):
+                        result_items.append(item)
+                return ApeList(result_items)
+            raise ExecutionError("filter() second argument must be a function", node)
+        
+        elif name == 'reduce':
+            if len(args) != 3:
+                raise ExecutionError(f"reduce() takes exactly 3 arguments ({len(args)} given)", node)
+            lst, initial, fn = args
+            if not isinstance(lst, ApeList):
+                raise ExecutionError(f"reduce() first argument must be List, got {type(lst).__name__}", node)
+            if isinstance(fn, FunctionDefNode):
+                accumulator = initial
+                for item in lst:
+                    accumulator = self._call_user_function(fn, [accumulator, item], context, node)
+                return accumulator
+            raise ExecutionError("reduce() third argument must be a function", node)
+        
+        # User-defined function
+        try:
+            func_def = context.get(name)
+        except NameError:
+            func_def = None
+        
+        if func_def is None:
+            raise ExecutionError(f"Undefined function: {name}", node)
+        
+        if not isinstance(func_def, FunctionDefNode):
+            raise ExecutionError(f"{name} is not a function", node)
+        
+        return self._call_user_function(func_def, args, context, node)
+    
+    def _call_user_function(self, func_def: FunctionDefNode, args: List[Any],
+                           context: ExecutionContext, node: ASTNode) -> Any:
+        """
+        Call a user-defined function.
+        
+        Args:
+            func_def: Function definition node
+            args: Evaluated arguments
+            context: Execution context
+            node: AST node for error reporting
+            
+        Returns:
+            Function result
+            
+        Raises:
+            ExecutionError: If arity mismatch or execution fails
+        """
+        # Check arity
+        if len(args) != len(func_def.parameters):
+            raise ExecutionError(
+                f"Function {func_def.name}() takes {len(func_def.parameters)} "
+                f"arguments ({len(args)} given)",
+                node
+            )
+        
+        # Create new scope for function
+        func_context = context.create_child_scope()
+        
+        # Bind parameters
+        for param, arg in zip(func_def.parameters, args):
+            func_context.set(param, arg)
+        
+        # Execute function body
+        try:
+            self.execute_block(func_def.body, func_context)
+            # If no return statement, return None
+            return None
+        except ReturnValue as ret:
+            return ret.value
     
     def _apply_operator(self, op: str, left: Any, right: Any, node: ASTNode) -> Any:
         """
@@ -594,6 +866,9 @@ class RuntimeExecutor:
         try:
             # Arithmetic operators
             if op == '+':
+                # Special handling for list concatenation
+                if isinstance(left, ApeList) and isinstance(right, ApeList):
+                    return left + right
                 return left + right
             elif op == '-':
                 return left - right
@@ -623,6 +898,10 @@ class RuntimeExecutor:
                 return left and right
             elif op == 'or':
                 return left or right
+            
+            # Membership test
+            elif op == 'in':
+                return left in right
             
             else:
                 raise ExecutionError(f"Unsupported operator: {op}", node)

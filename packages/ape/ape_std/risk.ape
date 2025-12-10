@@ -1,0 +1,39 @@
+module risk
+
+# Standard risk severity levels and ordering
+# Used across all analyzers for consistent risk assessment
+
+task get_risk_order:
+    inputs:
+        severity: String
+    outputs:
+        order: Integer
+    constraints:
+        - deterministic
+    steps:
+        - if severity equals "critical":
+            - return 4
+        - else if severity equals "high":
+            - return 3
+        - else if severity equals "medium":
+            - return 2
+        - else if severity equals "low":
+            - return 1
+        - else:
+            - return 0
+
+task max_risk:
+    inputs:
+        current: String
+        candidate: String
+    outputs:
+        result: String
+    constraints:
+        - deterministic
+    steps:
+        - call get_risk_order with current to get current_order
+        - call get_risk_order with candidate to get candidate_order
+        - if candidate_order > current_order:
+            - return candidate
+        - else:
+            - return current

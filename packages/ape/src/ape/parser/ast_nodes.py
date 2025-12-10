@@ -95,13 +95,22 @@ class StepNode(ASTNode):
 class ExpressionNode(ASTNode):
     """
     Expression node for conditions and computations.
-    Can be a literal, identifier, or operation.
+    Can be a literal, identifier, operation, function call, list, tuple, or index access.
     """
     value: Any = None  # For literals
     identifier: Optional[str] = None  # For variable references
     operator: Optional[str] = None  # For operations: +, -, <, >, ==, etc.
     left: Optional['ExpressionNode'] = None
     right: Optional['ExpressionNode'] = None
+    
+    # Function call support
+    function_name: Optional[str] = None
+    arguments: List['ExpressionNode'] = field(default_factory=list)
+    
+    # Tuple/List/Index support
+    tuple_node: Optional['TupleNode'] = None
+    list_node: Optional['ListNode'] = None
+    index_access: Optional['IndexAccessNode'] = None
 
 
 @dataclass
@@ -220,6 +229,7 @@ class ModuleNode(ASTNode):
     name: str = ""  # Empty string means no module declaration (legacy/main program)
     has_module_declaration: bool = False  # True if file starts with 'module <name>'
     imports: List[ImportNode] = field(default_factory=list)
+    functions: List['FunctionDefNode'] = field(default_factory=list)  # v1.x: Function definitions
     entities: List[EntityDefNode] = field(default_factory=list)
     enums: List[EnumDefNode] = field(default_factory=list)
     tasks: List[TaskDefNode] = field(default_factory=list)
@@ -289,3 +299,116 @@ class RaiseNode(ASTNode):
     """
     error_type: str = "Error"
     message: Optional[ASTNode] = None  # Expression node
+
+
+# ============================================================================
+# Function Definition and Return Nodes
+# ============================================================================
+
+@dataclass
+class FunctionDefNode(ASTNode):
+    """
+    Function definition node.
+    
+    Example:
+        fn analyze(x, y):
+            return x + y, x * y
+    
+    Author: David Van Aelst
+    Status: v1.x production
+    """
+    name: str = ""
+    parameters: List[str] = field(default_factory=list)
+    body: List[ASTNode] = field(default_factory=list)
+    return_type: Optional[TypeAnnotationNode] = None
+
+
+@dataclass
+class ReturnNode(ASTNode):
+    """
+    Return statement node.
+    Supports single values and tuple returns.
+    
+    Examples:
+        return x
+        return a, b, c
+    
+    Author: David Van Aelst
+    Status: v1.x production
+    """
+    values: List[ExpressionNode] = field(default_factory=list)
+    
+    @property
+    def is_tuple_return(self) -> bool:
+        """Check if this is a tuple return (multiple values)"""
+        return len(self.values) > 1
+
+
+@dataclass
+class TupleNode(ASTNode):
+    """
+    Tuple expression node.
+    Represents an immutable, fixed-size collection.
+    
+    Example:
+        (1, 2, 3)
+        ("success", True, 42)
+    
+    Author: David Van Aelst
+    Status: v1.x production
+    """
+    elements: List[ExpressionNode] = field(default_factory=list)
+
+
+@dataclass
+class ListNode(ASTNode):
+    """
+    List literal node.
+    Represents an immutable list.
+    
+    Example:
+        [1, 2, 3]
+        ["hello", "world"]
+    
+    Author: David Van Aelst
+    Status: v1.x production
+    """
+    elements: List[ExpressionNode] = field(default_factory=list)
+
+
+@dataclass
+class IndexAccessNode(ASTNode):
+    """
+    Index access operation.
+    
+    Example:
+        list[0]
+        tuple[1]
+    
+    Author: David Van Aelst
+    Status: v1.x production
+    """
+    target: ExpressionNode = None
+    index: ExpressionNode = None
+
+
+@dataclass
+class AssignmentNode(ASTNode):
+    """
+    Assignment statement.
+    Supports single and tuple destructuring.
+    
+    Examples:
+        x = 5
+        a, b, c = analyze(input)
+    
+    Author: David Van Aelst
+    Status: v1.x production
+    """
+    targets: List[str] = field(default_factory=list)  # Variable names
+    value: ExpressionNode = None
+    
+    @property
+    def is_tuple_destructuring(self) -> bool:
+        """Check if this is tuple destructuring (multiple targets)"""
+        return len(self.targets) > 1

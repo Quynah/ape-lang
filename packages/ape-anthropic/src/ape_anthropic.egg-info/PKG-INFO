@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-anthropic
-Version: 1.0.1
+Version: 1.0.3
 Summary: Anthropic Claude integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
@@ -15,7 +15,7 @@ Classifier: Topic :: Software Development :: Libraries
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: ape-lang>=1.0.1
+Requires-Dist: ape-lang>=1.0.3
 Requires-Dist: typing-extensions>=4.0.0
 Provides-Extra: anthropic
 Requires-Dist: anthropic>=0.18.0; extra == "anthropic"
@@ -64,6 +64,27 @@ pip install ape-anthropic[dev]
 **Prerequisites:**
 - Python >= 3.11
 - ape-lang >= 0.2.0
+
+## Test Coverage
+
+✅ **All tests passing**
+
+- **Total tests: 49**
+- Last verified via pytest discovery
+
+See [../ape/docs/APE_TESTING_GUARANTEES.md](../ape/docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
+
+The test suite covers:
+- Schema conversion (APE → Claude)
+- Executor (Claude → APE runtime)
+- Utils (error formatting, validation)
+- End-to-end integration
+- Generator (NL → APE code)
+
+To verify test counts:
+```bash
+pytest packages/ape-anthropic/tests --collect-only -q
+```
 
 ## Quick Start
 

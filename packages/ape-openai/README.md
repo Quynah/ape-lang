@@ -6,14 +6,6 @@ OpenAI integration for APE (AI Programmatic Execution).
 
 **ape-openai** bridges APE's deterministic validation layer with OpenAI's function calling API. It prevents hallucinations in function parameters by enforcing strict type checking and constraints before execution.
 
-## Architecture: Decision Authority
-
-**AI components provide suggestions and structured input only.**  
-All parsing, validation, and execution decisions are made exclusively by the APE runtime.  
-Invalid or hallucinated AI output is treated as untrusted input and rejected deterministically.
-
-OpenAI generates function call parameters. APE validates and executes. AI never bypasses validation or directly executes logic.
-
 ## Why ape-openai?
 
 OpenAI's function calling is powerful but can be unreliable:
@@ -44,6 +36,27 @@ pip install ape-openai[dev]
 **Prerequisites:**
 - Python >= 3.11
 - ape-lang >= 0.2.0
+
+## Test Coverage
+
+✅ **All tests passing**
+
+- **Total tests: 49**
+- Last verified via pytest discovery
+
+See [../ape/docs/APE_TESTING_GUARANTEES.md](../ape/docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
+
+The test suite covers:
+- Schema conversion (APE → OpenAI)
+- Executor (OpenAI → APE runtime)
+- Utils (error formatting, validation)
+- End-to-end integration
+- Generator (NL → APE code)
+
+To verify test counts:
+```bash
+pytest packages/ape-openai/tests --collect-only -q
+```
 
 ## Quick Start
 

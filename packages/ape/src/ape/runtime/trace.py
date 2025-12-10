@@ -7,7 +7,6 @@ Traces can be used for debugging, auditing, and understanding program flow.
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Literal, Optional
-import uuid
 
 
 @dataclass
@@ -43,30 +42,16 @@ class TraceCollector:
     Non-intrusive observation that does not affect deterministic execution.
     All snapshots are shallow copies of primitive values only.
     
-    Every TraceCollector is initialized with a unique trace_id for full observability.
-    
     Design principles:
-    - Every execution has a trace_id (generated if not provided)
     - No reference leaks (shallow copy primitives)
     - No side effects on execution
     - Minimal performance impact
     - Can be enabled/disabled without code changes
     """
     
-    def __init__(self, trace_id: Optional[str] = None):
-        """
-        Initialize trace collector with unique trace_id.
-        
-        Args:
-            trace_id: Optional trace ID. If None, generates a unique UUID.
-        """
+    def __init__(self):
+        """Initialize empty trace collector"""
         self._events: List[TraceEvent] = []
-        self._trace_id = trace_id if trace_id else str(uuid.uuid4())
-    
-    @property
-    def trace_id(self) -> str:
-        """Get the trace ID for this execution."""
-        return self._trace_id
     
     def record(self, event: TraceEvent) -> None:
         """
@@ -100,7 +85,7 @@ class TraceCollector:
     
     def __repr__(self) -> str:
         """String representation"""
-        return f"TraceCollector(trace_id={self._trace_id[:8]}..., {len(self._events)} events)"
+        return f"TraceCollector({len(self._events)} events)"
 
 
 def create_snapshot(context: Any) -> Dict[str, Any]:

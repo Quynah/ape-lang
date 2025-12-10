@@ -1,0 +1,13 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/packages/ape/src",
+        "${workspaceFolder}/packages/ape-anthropic/src",
+        "${workspaceFolder}/packages/ape-openai/src",
+        "${workspaceFolder}/packages/ape-langchain/src"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "packages/ape/tests"
+    ]
+}

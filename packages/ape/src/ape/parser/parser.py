@@ -100,7 +100,9 @@ class Parser:
         
         # Parse remaining top-level definitions
         while not self._match(TokenType.EOF):
-            if self._match(TokenType.ENTITY):
+            if self._match(TokenType.FN):
+                module.functions.append(self._parse_function())
+            elif self._match(TokenType.ENTITY):
                 module.entities.append(self._parse_entity())
             elif self._match(TokenType.ENUM):
                 module.enums.append(self._parse_enum())
@@ -167,6 +169,208 @@ class Parser:
             self._advance()  # consume '.'
             node.parts.append(self._expect(TokenType.IDENTIFIER).value)
         
+        return node
+    
+    # === Function Definition ===
+    
+    def _parse_function(self) -> 'FunctionDefNode':
+        """
+        Parse function definition.
+        
+        Grammar:
+            fn <name>(<params>):
+                <block>
+        
+        Example:
+            fn analyze(x, y):
+                return x + y, x * y
+        """
+        from ape.parser.ast_nodes import FunctionDefNode
+        
+        token = self._expect(TokenType.FN)
+        node = FunctionDefNode(line=token.line, column=token.column)
+        
+        # Parse function name
+        node.name = self._expect(TokenType.IDENTIFIER).value
+        
+        # Parse parameters
+        self._expect(TokenType.LPAREN)
+        
+        if not self._match(TokenType.RPAREN):
+            # Parse parameter list
+            node.parameters.append(self._expect(TokenType.IDENTIFIER).value)
+            
+            while self._match(TokenType.COMMA):
+                self._advance()  # consume comma
+                node.parameters.append(self._expect(TokenType.IDENTIFIER).value)
+        
+        self._expect(TokenType.RPAREN)
+        self._expect(TokenType.COLON)
+        self._expect(TokenType.NEWLINE)
+        
+        # Parse body
+        node.body = self._parse_function_body()
+        
+        return node
+    
+    def _parse_function_body(self) -> List[ASTNode]:
+        """
+        Parse function body which can contain:
+        - Assignments
+        - Control flow (if/while/for)
+        - Return statements
+        - Function calls
+        """
+        self._expect(TokenType.INDENT)
+        
+        statements = []
+        while not self._match(TokenType.DEDENT):
+            self._skip_newlines()
+            if self._match(TokenType.DEDENT):
+                break
+            
+            # Parse statement
+            if self._match(TokenType.RETURN):
+                statements.append(self._parse_return())
+            elif self._match(TokenType.IF):
+                statements.append(self._parse_if())
+            elif self._match(TokenType.WHILE):
+                statements.append(self._parse_while())
+            elif self._match(TokenType.FOR):
+                statements.append(self._parse_for())
+            elif self._match(TokenType.IDENTIFIER):
+                # Could be assignment or function call
+                # Peek ahead to determine
+                if self._peek(1) and self._peek(1).type in [TokenType.COMMA, TokenType.ASSIGN]:
+                    statements.append(self._parse_assignment())
+                elif self._peek(1) and self._peek(1).type == TokenType.LPAREN:
+                    # Function call as statement
+                    expr = self._parse_expression()
+                    statements.append(expr)
+                    self._expect(TokenType.NEWLINE)
+                else:
+                    statements.append(self._parse_assignment())
+            else:
+                raise ParseError(
+                    f"Unexpected token in function body: {self.current_token.type.name}",
+                    self.current_token
+                )
+        
+        self._expect(TokenType.DEDENT)
+        return statements
+    
+    def _parse_return(self) -> 'ReturnNode':
+        """
+        Parse return statement.
+        
+        Grammar:
+            return <expression>
+            return <expr1>, <expr2>, <expr3>
+        
+        Examples:
+            return x
+            return a, b, c
+        """
+        from ape.parser.ast_nodes import ReturnNode
+        
+        token = self._expect(TokenType.RETURN)
+        node = ReturnNode(line=token.line, column=token.column)
+        
+        # Parse return values (comma-separated for tuple returns)
+        if not self._match(TokenType.NEWLINE):
+            node.values.append(self._parse_arithmetic_expression())
+            
+            while self._match(TokenType.COMMA):
+                self._advance()  # consume comma
+                node.values.append(self._parse_arithmetic_expression())
+        
+        self._expect(TokenType.NEWLINE)
+        return node
+    
+    def _parse_arithmetic_expression(self) -> ExpressionNode:
+        """
+        Parse arithmetic expression with proper operator precedence.
+        
+        Grammar:
+            arithmetic_expr := term (('+' | '-') term)*
+            term := factor (('*' | '/') factor)*
+            factor := primary | '(' arithmetic_expr ')'
+        """
+        return self._parse_additive_expression()
+    
+    def _parse_additive_expression(self) -> ExpressionNode:
+        """Parse addition and subtraction (lowest precedence for arithmetic)"""
+        left = self._parse_multiplicative_expression()
+        
+        while self._match(TokenType.PLUS) or self._match(TokenType.DASH):
+            op_token = self._advance()
+            right = self._parse_multiplicative_expression()
+            
+            left = ExpressionNode(
+                operator='+' if op_token.type == TokenType.PLUS else '-',
+                left=left,
+                right=right,
+                line=left.line,
+                column=left.column
+            )
+        
+        return left
+    
+    def _parse_multiplicative_expression(self) -> ExpressionNode:
+        """Parse multiplication and division (higher precedence than addition)"""
+        left = self._parse_primary_expression()
+        
+        while self._match(TokenType.STAR) or self._match(TokenType.SLASH) or self._match(TokenType.PERCENT):
+            op_token = self._advance()
+            right = self._parse_primary_expression()
+            
+            op_map = {
+                TokenType.STAR: '*',
+                TokenType.SLASH: '/',
+                TokenType.PERCENT: '%'
+            }
+            
+            left = ExpressionNode(
+                operator=op_map[op_token.type],
+                left=left,
+                right=right,
+                line=left.line,
+                column=left.column
+            )
+        
+        return left
+    
+    def _parse_assignment(self) -> 'AssignmentNode':
+        """
+        Parse assignment statement.
+        
+        Grammar:
+            <identifier> = <expression>
+            <id1>, <id2>, <id3> = <expression>
+        
+        Examples:
+            x = 5
+            a, b, c = analyze(input)
+        """
+        from ape.parser.ast_nodes import AssignmentNode
+        
+        token = self.current_token
+        node = AssignmentNode(line=token.line, column=token.column)
+        
+        # Parse target(s)
+        node.targets.append(self._expect(TokenType.IDENTIFIER).value)
+        
+        while self._match(TokenType.COMMA):
+            self._advance()  # consume comma
+            node.targets.append(self._expect(TokenType.IDENTIFIER).value)
+        
+        # Expect = sign
+        self._expect(TokenType.ASSIGN)
+        
+        # Parse value expression
+        node.value = self._parse_arithmetic_expression()
+        
+        self._expect(TokenType.NEWLINE)
         return node
     
     # === Entity ===
@@ -272,7 +476,7 @@ class Parser:
                 node.constraints = self._parse_constraints()
             else:
                 raise ParseError(
-                    f"Unexpected token in task: {self.current_token.type.name}",
+                    f"Unexpected token in task: {self.current_token.type.name} (value='{self.current_token.value}')",
                     self.current_token
                 )
         
@@ -481,32 +685,71 @@ class Parser:
     
     def _parse_expression(self) -> ExpressionNode:
         """
-        Parse an expression (condition, arithmetic, etc.).
+        Parse an expression with support for chained boolean logic.
         
-        For now, this is a simplified parser that reads tokens until :
-        In a full implementation, this would be a proper expression parser
-        with operator precedence, etc.
+        Supports:
+        - Simple comparisons: x < 10
+        - Boolean logic: x > 5 and y < 10
+        - Multiple operators: a or b or c
         
         Returns:
             ExpressionNode
         """
+        return self._parse_or_expression()
+    
+    def _parse_or_expression(self) -> ExpressionNode:
+        """Parse OR expression (lowest precedence for boolean operators)"""
+        left = self._parse_and_expression()
+        
+        while self.current_token.type == TokenType.IDENTIFIER and self.current_token.value == 'or':
+            self._advance()  # consume 'or'
+            right = self._parse_and_expression()
+            # Create binary expression node
+            left = ExpressionNode(
+                operator='or',
+                left=left,
+                right=right,
+                line=left.line,
+                column=left.column
+            )
+        
+        return left
+    
+    def _parse_and_expression(self) -> ExpressionNode:
+        """Parse AND expression (higher precedence than OR)"""
+        left = self._parse_comparison_expression()
+        
+        while self.current_token.type == TokenType.IDENTIFIER and self.current_token.value == 'and':
+            self._advance()  # consume 'and'
+            right = self._parse_comparison_expression()
+            # Create binary expression node
+            left = ExpressionNode(
+                operator='and',
+                left=left,
+                right=right,
+                line=left.line,
+                column=left.column
+            )
+        
+        return left
+    
+    def _parse_comparison_expression(self) -> ExpressionNode:
+        """Parse comparison expression (e.g., x < 10, name == "test", item in list)"""
         token = self.current_token
         node = ExpressionNode(line=token.line, column=token.column)
         
-        # Simple expression parsing: read until we hit a colon
-        # This is a placeholder - a real implementation would parse
-        # operators, precedence, etc.
-        
-        # For now, just handle simple cases:
-        # - identifiers (variables)
-        # - literals (numbers, strings, booleans)
-        # - simple binary operations (x < 10, x == 5, etc.)
-        
+        # Parse left side (identifier or primary)
         if self._match(TokenType.IDENTIFIER):
             identifier = self._advance().value
             
-            # Check for binary operator
-            if self._match_expression_operator():
+            # Check for 'in' operator
+            if self._match(TokenType.IN):
+                self._advance()  # consume 'in'
+                node.operator = 'in'
+                node.left = ExpressionNode(identifier=identifier, line=token.line, column=token.column)
+                node.right = self._parse_primary_expression()
+            # Check for comparison operator
+            elif self._match_comparison_operator():
                 op_token = self._advance()
                 # Map token type to operator string
                 op_map = {
@@ -516,11 +759,6 @@ class Parser:
                     TokenType.GE: '>=',
                     TokenType.EQ: '==',
                     TokenType.NE: '!=',
-                    TokenType.PLUS: '+',
-                    TokenType.DASH: '-',
-                    TokenType.STAR: '*',
-                    TokenType.SLASH: '/',
-                    TokenType.PERCENT: '%',
                 }
                 node.operator = op_map.get(op_token.type, op_token.value)
                 node.left = ExpressionNode(identifier=identifier, line=token.line, column=token.column)
@@ -528,35 +766,176 @@ class Parser:
             else:
                 node.identifier = identifier
         else:
-            # Primary expression (literal or parenthesized expression)
+            # Primary expression (literal)
             node = self._parse_primary_expression()
         
         return node
     
+    def _match_comparison_operator(self) -> bool:
+        """Check if current token is a comparison operator"""
+        return self.current_token.type in [
+            TokenType.LT, TokenType.GT, TokenType.LE, TokenType.GE,
+            TokenType.EQ, TokenType.NE
+        ]
+    
     def _parse_primary_expression(self) -> ExpressionNode:
-        """Parse a primary expression (literal, identifier, or grouped expression)"""
+        """
+        Parse a primary expression (literal, identifier, function call, list, tuple, or index access).
+        
+        Supports:
+        - Literals: 42, 3.14, "hello", true
+        - Identifiers: x, my_var
+        - Function calls: analyze(x, y)
+        - Lists: [1, 2, 3]
+        - Tuples: (1, 2, 3)
+        - Index access: list[0]
+        """
+        from ape.parser.ast_nodes import ListNode, TupleNode, IndexAccessNode
+        
         token = self.current_token
         node = ExpressionNode(line=token.line, column=token.column)
         
-        if self._match(TokenType.NUMBER):
+        # List literal
+        if self._match(TokenType.LBRACKET):
+            list_node = self._parse_list()
+            node.list_node = list_node
+            
+        # Tuple literal or grouped expression
+        elif self._match(TokenType.LPAREN):
+            self._advance()  # consume (
+            
+            # Check for empty tuple
+            if self._match(TokenType.RPAREN):
+                self._advance()
+                node.tuple_node = TupleNode(elements=[], line=token.line, column=token.column)
+            else:
+                # Parse first element
+                first_expr = self._parse_expression()
+                
+                # Check if tuple (comma present) or grouped expression
+                if self._match(TokenType.COMMA):
+                    # It's a tuple
+                    elements = [first_expr]
+                    
+                    while self._match(TokenType.COMMA):
+                        self._advance()  # consume comma
+                        # Allow trailing comma
+                        if self._match(TokenType.RPAREN):
+                            break
+                        elements.append(self._parse_expression())
+                    
+                    self._expect(TokenType.RPAREN)
+                    node.tuple_node = TupleNode(elements=elements, line=token.line, column=token.column)
+                else:
+                    # Grouped expression - just return the inner expression
+                    self._expect(TokenType.RPAREN)
+                    return first_expr
+        
+        # Number literal
+        elif self._match(TokenType.NUMBER):
             value_str = self._advance().value
             # Convert to int or float
             node.value = float(value_str) if '.' in value_str else int(value_str)
+            
+        # String literal
         elif self._match(TokenType.STRING):
             # Remove quotes from string
             value = self._advance().value
             node.value = value[1:-1]  # Strip quotes
+            
+        # Boolean literal
         elif self._match(TokenType.BOOLEAN):
             value = self._advance().value
             node.value = value.lower() == 'true'
+            
+        # Identifier or function call
         elif self._match(TokenType.IDENTIFIER):
-            node.identifier = self._advance().value
+            identifier = self._advance().value
+            
+            # Check for function call
+            if self._match(TokenType.LPAREN):
+                self._advance()  # consume (
+                
+                # Parse arguments
+                args = []
+                if not self._match(TokenType.RPAREN):
+                    args.append(self._parse_expression())
+                    
+                    while self._match(TokenType.COMMA):
+                        self._advance()  # consume comma
+                        args.append(self._parse_expression())
+                
+                self._expect(TokenType.RPAREN)
+                
+                # Create function call expression
+                node.function_name = identifier
+                node.arguments = args
+            else:
+                # Just an identifier
+                node.identifier = identifier
+        
         else:
             raise ParseError(
                 f"Expected expression, got {self.current_token.type.name}",
                 self.current_token
             )
         
+        # Check for index access (postfix)
+        if self._match(TokenType.LBRACKET):
+            self._advance()  # consume [
+            index_expr = self._parse_expression()
+            self._expect(TokenType.RBRACKET)
+            
+            # Wrap current node in index access
+            index_node = IndexAccessNode(
+                target=node,
+                index=index_expr,
+                line=token.line,
+                column=token.column
+            )
+            
+            # Create expression node wrapping the index access
+            result = ExpressionNode(line=token.line, column=token.column)
+            result.index_access = index_node
+            return result
+        
+        return node
+    
+    def _parse_list(self) -> 'ListNode':
+        """
+        Parse list literal.
+        
+        Grammar:
+            list := '[' [expression (',' expression)* [',']] ']'
+        
+        Examples:
+            []
+            [1, 2, 3]
+            [1, 2, 3,]  # trailing comma allowed
+        """
+        from ape.parser.ast_nodes import ListNode
+        
+        token = self._expect(TokenType.LBRACKET)
+        node = ListNode(line=token.line, column=token.column)
+        
+        # Empty list
+        if self._match(TokenType.RBRACKET):
+            self._advance()
+            return node
+        
+        # Parse elements
+        node.elements.append(self._parse_expression())
+        
+        while self._match(TokenType.COMMA):
+            self._advance()  # consume comma
+            
+            # Allow trailing comma
+            if self._match(TokenType.RBRACKET):
+                break
+            
+            node.elements.append(self._parse_expression())
+        
+        self._expect(TokenType.RBRACKET)
         return node
     
     def _match_expression_operator(self) -> bool:

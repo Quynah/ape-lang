@@ -49,13 +49,13 @@ def format_openai_result(result: Any) -> str:
 
 def validate_openai_response(response: Dict[str, Any]) -> bool:
     """
-    Validate an OpenAI API response structure.
+    Validate an OpenAI API response structure for function calling.
 
     Args:
         response: Response dictionary from OpenAI
 
     Returns:
-        True if response is valid
+        True if response contains valid function call structure
     """
     if not isinstance(response, dict):
         return False
@@ -66,14 +66,35 @@ def validate_openai_response(response: Dict[str, Any]) -> bool:
     if not response["choices"]:
         return False
 
-    # Check if it contains function call
+    # Check if it contains valid function call
     first_choice = response["choices"][0]
-    if "message" in first_choice:
-        message = first_choice["message"]
-        if "function_call" in message or "tool_calls" in message:
-            return True
-
-    return True  # Valid response even if not function call
+    if "message" not in first_choice:
+        return False
+    
+    message = first_choice["message"]
+    
+    # Check for tool_calls (new format)
+    if "tool_calls" in message:
+        tool_calls = message["tool_calls"]
+        if not tool_calls:
+            return False
+        # Validate first tool call structure
+        first_tool = tool_calls[0]
+        if "function" not in first_tool:
+            return False
+        func = first_tool["function"]
+        if "name" not in func or "arguments" not in func:
+            return False
+        return True
+    
+    # Check for function_call (legacy format)
+    if "function_call" in message:
+        func_call = message["function_call"]
+        if "name" not in func_call or "arguments" not in func_call:
+            return False
+        return True
+    
+    return False  # No function call found
 
 
 __all__ = [

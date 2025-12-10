@@ -371,7 +371,7 @@ APE complements Claude's built-in safety:
 
 **Guarantees:** Deterministic safety, traceable decisions, replay-safe  
 **Real-world use:** AI assistants, safety-critical applications  
-**APE version:** v1.0.0  
+**APE version:** v1.0.3  
 **Anthropic SDK:** Compatible with anthropic>=0.18.0
 
 ---

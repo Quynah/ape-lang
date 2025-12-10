@@ -60,7 +60,7 @@ class ApeTask:
         )
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 __all__ = [
     "ape_task_to_claude_schema",

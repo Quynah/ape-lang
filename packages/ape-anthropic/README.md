@@ -6,14 +6,6 @@ Anthropic Claude integration for APE (AI Programmatic Execution).
 
 **ape-anthropic** bridges APE's deterministic validation layer with Anthropic's Claude tool use API. It prevents hallucinations in Claude function parameters by enforcing strict type checking and constraints before execution.
 
-## Architecture: Decision Authority
-
-**AI components provide suggestions and structured input only.**  
-All parsing, validation, and execution decisions are made exclusively by the APE runtime.  
-Invalid or hallucinated AI output is treated as untrusted input and rejected deterministically.
-
-Claude generates tool use parameters. APE validates and executes. Claude never bypasses validation or directly executes logic.
-
 ## Why ape-anthropic?
 
 Claude's tool use is powerful but unreliable:
@@ -44,6 +36,27 @@ pip install ape-anthropic[dev]
 **Prerequisites:**
 - Python >= 3.11
 - ape-lang >= 0.2.0
+
+## Test Coverage
+
+✅ **All tests passing**
+
+- **Total tests: 49**
+- Last verified via pytest discovery
+
+See [../ape/docs/APE_TESTING_GUARANTEES.md](../ape/docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
+
+The test suite covers:
+- Schema conversion (APE → Claude)
+- Executor (Claude → APE runtime)
+- Utils (error formatting, validation)
+- End-to-end integration
+- Generator (NL → APE code)
+
+To verify test counts:
+```bash
+pytest packages/ape-anthropic/tests --collect-only -q
+```
 
 ## Quick Start
 

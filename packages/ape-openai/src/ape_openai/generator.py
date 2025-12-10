@@ -76,6 +76,7 @@ Ensure all constraints are deterministic and all steps are explicit."""
                 {"role": "user", "content": f"Generate Ape code for: {prompt}"}
             ],
             temperature=0.0,  # Deterministic generation
+            max_tokens=2048,  # Reasonable limit for code generation
         )
 
         generated_code = response.choices[0].message.content or ""

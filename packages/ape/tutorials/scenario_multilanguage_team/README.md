@@ -169,7 +169,7 @@ explanation = explain(trace, language="en")  # Explains in English
 
 ## Supported Languages
 
-APE v1.0.0 supports:
+APE v1.0.3 supports:
 
 - 🇬🇧 **English** (`language="en"`)
 - 🇳🇱 **Dutch** (`language="nl"`)
@@ -242,7 +242,7 @@ def test_semantic_equivalence():
 **Guarantees:** Language-agnostic, deterministic, traceable, collaborative  
 **Real-world use:** International teams, multilingual organizations  
 **Supported languages:** EN, NL, FR, DE, ES, IT, PT  
-**APE version:** v1.0.0
+**APE version:** v1.0.3
 
 ---
 

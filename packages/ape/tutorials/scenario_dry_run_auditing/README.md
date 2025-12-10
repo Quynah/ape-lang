@@ -224,7 +224,7 @@ If dry-run fails, your task has side effects that need capability gates.
 
 **Guarantees:** Deterministic, mutation-free, traceable, production-safe  
 **Real-world use:** Policy testing, compliance audits, shadow deployments  
-**APE version:** v1.0.0
+**APE version:** v1.0.3
 
 ---
 

@@ -36,7 +36,7 @@ from ape.errors import (
 from ape.cli import build_project
 from ape.codegen.python_codegen import PythonCodeGenerator
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 class ApeCompileError(Exception):
@@ -230,14 +230,14 @@ def run(source: str, *, context: dict | None = None, language: str = "en") -> An
     parser = Parser(tokens)
     ast = parser.parse()
     
-    # Create execution context with mutations enabled (for convenience function)
-    exec_context = ExecutionContext(dry_run=False)
+    # Create execution context
+    exec_context = ExecutionContext()
     if context:
         for key, value in context.items():
             exec_context.set(key, value)
     
-    # Execute with mutations allowed
-    executor = RuntimeExecutor(allow_execution=True)
+    # Execute
+    executor = RuntimeExecutor()
     return executor.execute(ast, exec_context)
 
 

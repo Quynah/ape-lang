@@ -26,14 +26,12 @@ class ErrorContext:
     
     Attributes:
         node_type: Type of AST node where error occurred (e.g., "IF", "WHILE")
-        trace_id: Trace ID of the execution (for observability)
         trace_index: Index in execution trace (if available)
         line_number: Source line number (if available)
         column_number: Source column number (if available)
         details: Additional error-specific information
     """
     node_type: Optional[str] = None
-    trace_id: Optional[str] = None
     trace_index: Optional[int] = None
     line_number: Optional[int] = None
     column_number: Optional[int] = None
@@ -44,8 +42,6 @@ class ErrorContext:
         result = {}
         if self.node_type:
             result['node_type'] = self.node_type
-        if self.trace_id:
-            result['trace_id'] = self.trace_id
         if self.trace_index is not None:
             result['trace_index'] = self.trace_index
         if self.line_number is not None:
@@ -88,9 +84,6 @@ class ApeError(Exception):
     def _format_message(self) -> str:
         """Format error message with context"""
         parts = [self.message]
-        
-        if self.context.trace_id:
-            parts.append(f"Trace ID: {self.context.trace_id}")
         
         if self.context.node_type:
             parts.append(f"Node: {self.context.node_type}")
@@ -161,10 +154,8 @@ class RuntimeExecutionError(ApeError):
         self, 
         message: str,
         node_type: Optional[str] = None,
-        trace_id: Optional[str] = None,
         trace_index: Optional[int] = None,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[ErrorContext] = None
+        details: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize runtime execution error.
@@ -172,23 +163,15 @@ class RuntimeExecutionError(ApeError):
         Args:
             message: Description of execution failure
             node_type: Type of AST node where error occurred
-            trace_id: Trace ID for observability
             trace_index: Index in execution trace
             details: Additional execution context
-            context: Pre-constructed ErrorContext (overrides other params)
         """
-        if context is not None:
-            # Use provided context directly
-            error_context = context
-        else:
-            # Build context from parameters
-            error_context = ErrorContext(
-                node_type=node_type,
-                trace_id=trace_id,
-                trace_index=trace_index,
-                details=details or {}
-            )
-        super().__init__(message, error_context)
+        context = ErrorContext(
+            node_type=node_type,
+            trace_index=trace_index,
+            details=details or {}
+        )
+        super().__init__(message, context)
 
 
 class CapabilityError(ApeError):

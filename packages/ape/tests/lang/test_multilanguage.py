@@ -288,8 +288,8 @@ task main:
             - set result to 0
 """
         # Should not raise error
-        _result = run(source, context={'x': 10}, language='en')
-
+        result = run(source, context={'x': 10}, language='en')
+    
     def test_run_with_dutch(self):
         """Test run() with Dutch."""
         source = """
@@ -301,8 +301,8 @@ task main:
             - set result to 0
 """
         # Should not raise error
-        _result = run(source, context={'x': 10}, language='nl')
-
+        result = run(source, context={'x': 10}, language='nl')
+    
     def test_run_with_french(self):
         """Test run() with French."""
         source = """
@@ -313,8 +313,8 @@ task main:
         sinon:
             - set result to 0
 """
-        _result = run(source, context={'x': 10}, language='fr')
-
+        result = run(source, context={'x': 10}, language='fr')
+    
     def test_run_with_unsupported_language_fails(self):
         """Test run() fails with unsupported language."""
         source = "if x > 5:\n    - set y to 10"

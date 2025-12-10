@@ -6,14 +6,6 @@ LangChain integration for APE (AI Programmatic Execution).
 
 **ape-langchain** provides seamless integration between APE's deterministic functions and LangChain's agent framework. Convert APE tasks into LangChain tools with automatic validation and type safety.
 
-## Architecture: Decision Authority
-
-**AI components provide suggestions and structured input only.**  
-All parsing, validation, and execution decisions are made exclusively by the APE runtime.  
-Invalid or hallucinated AI output is treated as untrusted input and rejected deterministically.
-
-LangChain agents generate tool calls. APE validates and executes. Agents never bypass validation or directly execute logic.
-
 ## Why ape-langchain?
 
 LangChain agents are powerful but need reliable tools:
@@ -44,6 +36,29 @@ pip install ape-langchain[dev]
 **Prerequisites:**
 - Python >= 3.11
 - ape-lang >= 0.2.0
+
+## Test Coverage
+
+✅ **Tests: 17 passing, 3 skipped**
+
+- **Total tests: 20** (17 passing + 3 documented skips)
+- Last verified via pytest discovery
+
+See [../ape/docs/APE_TESTING_GUARANTEES.md](../ape/docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
+
+The test suite covers:
+- Schema conversion (APE → LangChain)
+- Utils (result formatting, input validation)
+
+Skipped tests (documented with reasons):
+- End-to-end integration (API difference: file-based vs task-based)
+- Executor (API difference documented)
+- Generator (needs implementation verification)
+
+To verify test counts:
+```bash
+pytest packages/ape-langchain/tests --collect-only -q
+```
 
 ## Quick Start
 

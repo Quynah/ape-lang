@@ -201,7 +201,7 @@ All rules remain **deterministic** and **traceable**.
 
 **Guarantees:** Deterministic, traceable, replay-safe, side-effect free  
 **Real-world use:** AI safety, prompt injection prevention, PII protection  
-**APE version:** v1.0.0
+**APE version:** v1.0.3
 
 ---
 

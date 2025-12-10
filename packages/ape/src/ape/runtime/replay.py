@@ -175,7 +175,7 @@ class ReplayEngine:
         for var_name in enter_vars:
             if var_name in exit_vars:
                 # Variable exists in both - validate type consistency
-                _enter_val = enter_vars[var_name]
+                enter_val = enter_vars[var_name]
                 exit_val = exit_vars[var_name]
                 
                 # Type can change (reassignment), but should be valid

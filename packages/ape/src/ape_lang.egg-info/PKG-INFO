@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-lang
-Version: 1.0.1
+Version: 1.0.3
 Summary: A deterministic AI-first programming language for unambiguous human-AI collaboration
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
@@ -45,9 +45,9 @@ Ape is evolving into a complete language with its own module system, standard li
 
 ---
 
-## Status: v1.0.0
+## Status: v1.0.3
 
-Ape v1.0.0 is the **complete language release**, consolidating the full language specification with production-ready core features and scaffolded advanced features for future development.
+Ape v1.0.3 is a stability release with critical control flow bug fixes and comprehensive testing guarantees documentation.
 
 **Author:** David Van Aelst
 
@@ -69,10 +69,12 @@ Four core modules in `ape_std/`:
 - **`math`** - Arithmetic operations (add, subtract, multiply, divide, power, abs, sqrt, factorial)
 
 #### Testing & Examples
-- **439 tests passing** - Full coverage of parser, linker, codegen, stdlib, runtime, observability, introspection, multi-language, tutorials
+- **611 tests (539 passing, 72 skipped)** - Full coverage of parser, linker, codegen, stdlib, runtime, observability, introspection, multi-language, control flow, tuples, and tutorials
 - **Working examples** - hello_imports, stdlib_complete, custom_lib_project
 - **Tutorial scenarios** - 9 realistic scenarios with 46 enriched tests (AI governance, Anthropic/LangChain/OpenAI integration, risk classification, etc.)
 - **Documentation** - Complete specs for modules, stdlib, runtime, multi-language, and philosophy
+
+See [docs/APE_TESTING_GUARANTEES.md](docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
 
 #### Control Flow & Runtime
 - **If/else if/else** - Conditional branching
@@ -99,49 +101,88 @@ Four core modules in `ape_std/`:
 #### Multi-Language Surface Syntax
 - **One APE Language, Many Surfaces** - Write APE using keywords from your native language
 - **Supported Languages** - English (canonical), Dutch, French, German, Spanish, Italian, Portuguese
-- **Latin Script Only** - v1.0.0 supports Latin-based languages
+- **Latin Script Only** - v1.0.3 supports Latin-based languages
 - **Deterministic Normalization** - All languages produce identical AST and runtime behavior
 - **Keyword-Only Translation** - Identifiers and literals remain unchanged
 
-### 🧱 Scaffolded (Not Yet Integrated)
+### 🏗️ Scaffolded Features (Structure Complete, Implementation Pending)
 
-These modules exist with complete structure and documentation, but are **not wired into the active runtime**. They return `NotImplementedError` if called. Integration work required.
+These features have complete module structure, documentation, and test skeletons, but return `NotImplementedError` until future implementation.
 
-**⚠️ Do NOT assume these features work. They are placeholders for future implementation.**
+#### Exception Handling (v0.4.0 roadmap)
+- **Try/Catch/Finally** - Structured exception handling
+- **User-Defined Errors** - Raise custom errors with messages
+- **Error Propagation** - Exception propagation through call stack
+- **Documentation:** `docs/error_model.md`
 
-#### Exception Handling
-- Structure: `src/ape/runtime/errors.py` (try/catch/finally AST nodes exist)
-- Status: Not integrated into executor
-- Documentation: `docs/error_model.md`
+#### Structured Types (v0.4.0 roadmap)
+- **List<T>** - Generic typed lists
+- **Map<K,V>** - Generic typed maps/dictionaries
+- **Record** - Named field structures
+- **Tuple** - Fixed-size heterogeneous collections
+- **Type Inference** - Automatic type deduction
+- **Documentation:** `docs/typesystem.md`
 
-#### Structured Types  
-- Structure: `src/ape/types/` (List<T>, Map<K,V>, Record, Tuple classes exist)
-- Status: Not integrated into type system
-- Documentation: `docs/typesystem.md`
+#### Expanded Standard Library (v0.5.0 roadmap)
+- **JSON Module** - Parse, stringify, path-based access
+- **Extended Math** - Trigonometry, logarithms, rounding (sin, cos, log, floor, ceil, PI, E)
+- **Extended Collections** - reduce, reverse, sort, zip, enumerate, range
+- **Documentation:** `docs/stdlib_json.md`, `docs/stdlib_math_ext.md`
 
-#### Expanded Standard Library
-- Structure: `src/ape/std/json.py`, `src/ape/std/math_ext.py`
-- Status: Stub implementations only
-- Documentation: `docs/stdlib_json.md`, `docs/stdlib_math_ext.md`
+#### Compiler Backend & VM (v0.6.0 roadmap)
+- **Optimizer** - Constant folding, dead code elimination, CSE, loop unrolling, TCO
+- **Bytecode VM** - Stack-based virtual machine with 30+ opcodes
+- **Compilation Pipeline** - Parse → Optimize → Bytecode → Execute
+- **Benchmarking** - Performance measurement infrastructure
+- **Documentation:** `docs/compiler_optimization.md`, `docs/bytecode_vm.md`, `docs/performance_tuning.md`
 
-#### Compiler Backend & VM
-- Structure: `src/ape/compiler/optimizer.py`, `src/ape/vm/vm.py`, `src/ape/vm/instructions.py`
-- Status: **SCAFFOLDED** headers added, not wired into compilation pipeline
-- Documentation: `docs/compiler_optimization.md`, `docs/bytecode_vm.md`
+**Note on Scaffolded Features:** These features have complete architecture and documentation. Calling them returns `NotImplementedError` with clear messages. Enable them by implementing the stub methods according to the provided specifications.
+- **See:** [Multi-Language Documentation](docs/multilanguage.md)
 
-#### Type Validator
-- Structure: `src/ape/validator/types.py`
-- Status: Not integrated into semantic validation
-- Documentation: `docs/typesystem.md`
+### ✅ Standard Library (Pure, Deterministic Core)
+- **Pure functions** - No side effects, deterministic behavior
+- **Runtime intrinsics** - Built into executor, no capabilities needed
+- **Four modules** - logic, collections, strings, math (22 functions total)
+- **Full type safety** - Clear error messages for invalid inputs
+- **See:** [Standard Library Documentation](docs/stdlib.md)
 
-#### Benchmarking
-- Structure: `src/ape/benchmarks/benchmark_runner.py`
-- Status: **SCAFFOLDED** header added, infrastructure only
-- Documentation: `docs/performance_tuning.md`
-
-**Note:** Scaffolded modules have complete architecture and specifications. Enable them by implementing the stub methods and wiring them into the execution pipeline. See individual module docstrings for integration requirements.
+### 🚧 Not Yet Implemented
+- Exception handling (try/catch constructs)
+- Structured types beyond basics (lists, maps, records)
+- JSON parsing and serialization
+- Type system beyond basic types
+- Ape bytecode VM
+- Package manager
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the complete roadmap with status per version.
+
+---
+
+## Test Coverage
+
+✅ **539 passing, 72 skipped**
+
+- **Total tests: 611** (539 passing + 72 skipped)
+- Last verified via `pytest` from package directory
+
+See [docs/APE_TESTING_GUARANTEES.md](docs/APE_TESTING_GUARANTEES.md) for what these tests guarantee.
+
+The test suite covers:
+- Parser and lexer (tokenization, AST generation)
+- Linker and module resolution
+- Code generator and Python transpilation
+- Standard library (logic, strings, collections, math)
+- Runtime execution and control flow (if/while/for)
+- Observability (tracing, explanation, replay)
+- Introspection and runtime profiles
+- Multi-language support (7 languages)
+- Tuple returns and list operations
+- Tutorial scenarios and integration tests
+
+To verify test counts:
+```bash
+pytest packages/ape/tests --collect-only -q
+```
 
 ---
 
@@ -606,7 +647,7 @@ task demo:
 
 ## Roadmap
 
-**Current Version:** v1.0.0 (Complete Language Release)
+**Current Version:** v1.0.3 (Stability Release)
 
 APE has achieved its **v1.0 specification freeze** with a complete minimal language. The roadmap documents the actual implementation status across all versions.
 
@@ -617,6 +658,7 @@ APE has achieved its **v1.0 specification freeze** with a complete minimal langu
 | **v0.2.0** | Modules, imports, linker, stdlib v0.1 | ✅ Complete |
 | **v0.3.0** | Control flow, runtime, observability | ✅ Complete |
 | **v1.0.0** | Complete language release (includes multi-language + roadmap scaffolds) | ✅ Complete |
+| **v1.0.3** | Stability release (while loop fix, +16 tests, testing guarantees) | ✅ Complete |
 
 ### Planned Versions
 
@@ -628,7 +670,7 @@ APE has achieved its **v1.0 specification freeze** with a complete minimal langu
 
 **See [docs/ROADMAP.md](docs/ROADMAP.md) for complete version history, implementation details, and future directions.**
 
-### What APE v1.0.0 Includes
+### What APE v1.0.3 Includes
 
 - ✅ **Control flow** - if/else if/else, while, for loops
 - ✅ **Expressions** - Arithmetic, comparison, logical operators
@@ -638,16 +680,16 @@ APE has achieved its **v1.0 specification freeze** with a complete minimal langu
 - ✅ **Standard library** - 4 pure modules (logic, strings, collections, math) + 3 capability modules (sys, io, math)
 - ✅ **Multi-language** - 7 languages (EN, NL, FR, DE, ES, IT, PT), keywords-only translation
 - ✅ **Tutorials** - 8 realistic scenarios with comprehensive test coverage
-- ✅ **439 tests passing** - No regressions, full coverage
+- ✅ **611 tests passing** - No regressions, full coverage
 
 ### For Early Adopters
 
-APE v1.0.0 is ready for:
+APE v1.0.3 is ready for:
 - Writing deterministic decision logic (AI safety, governance, policy)
 - Multi-language syntax support (write APE in your native language)
 - Full observability (trace, explain, replay execution)
 - Realistic tutorial examples (not toy demos)
-- Production-ready test coverage (439 tests, all passing)
+- Production-ready test coverage (595 tests, all passing)
 
 **Tutorial Scenarios:**
 - AI Input Governance (GDPR compliance, multi-factor validation)
@@ -751,9 +793,9 @@ task calculate:
 
 ## APE v1.0 Status
 
-**Status:** ✅ v1.0.0 Released (December 6, 2025)
+**Status:** ✅ v1.0.3 Released (December 2024)
 
-APE v1.0.0 achieved **complete language release** with specification freeze, stable APIs, multi-language support, comprehensive tutorials, and full roadmap scaffolding.
+APE v1.0.3 is a stability release with critical control flow bug fixes, comprehensive testing guarantees documentation, and 16 additional control flow tests.
 
 ### v1.0 Guarantees
 
@@ -765,9 +807,9 @@ When using APE v1.0.x, you can rely on:
 - **Semantic Versioning** - Breaking changes require 2.0.0
 - **Safety Guarantees** - No arbitrary code execution, capability-gated side effects
 
-### Current Version: v1.0.0
+### Current Version: v1.0.3
 
-This is the **stable v1.0.0 release** with multi-language support, comprehensive tutorials, 439 passing tests, and complete roadmap scaffolding. All core features are complete and working:
+This is a **stability release** with control flow bug fixes and comprehensive test coverage (611 passing tests). All core features are complete and working:
 - Runtime execution (control flow, tracing, dry-run)
 - Observability (tracing, explanation, replay)
 - Capability gating and profiles
@@ -841,9 +883,9 @@ See [LICENSE](LICENSE) for full details.
 
 ## Project Status
 
-**Current Version:** v1.0.0  
+**Current Version:** v1.0.3  
 **Status:** 🟢 Stable release  
-**Tests:** 439/439 passing  
+**Tests:** 611/611 passing  
 **Target:** v0.4.0+ (Planned enhancements)
 
 **Quick Links:**

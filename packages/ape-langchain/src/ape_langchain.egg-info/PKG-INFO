@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-langchain
-Version: 1.0.1
+Version: 1.0.3
 Summary: LangChain integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
@@ -14,7 +14,7 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development :: Libraries
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
-Requires-Dist: ape-lang>=1.0.1
+Requires-Dist: ape-lang>=1.0.3
 Requires-Dist: typing-extensions>=4.0.0
 Provides-Extra: langchain
 Requires-Dist: langchain>=0.1.0; extra == "langchain"
@@ -63,6 +63,29 @@ pip install ape-langchain[dev]
 **Prerequisites:**
 - Python >= 3.11
 - ape-lang >= 0.2.0
+
+## Test Coverage
+
+✅ **Tests: 17 passing, 3 skipped**
+
+- **Total tests: 20** (17 passing + 3 documented skips)
+- Last verified via pytest discovery
+
+See [../ape/docs/APE_TESTING_GUARANTEES.md](../ape/docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
+
+The test suite covers:
+- Schema conversion (APE → LangChain)
+- Utils (result formatting, input validation)
+
+Skipped tests (documented with reasons):
+- End-to-end integration (API difference: file-based vs task-based)
+- Executor (API difference documented)
+- Generator (needs implementation verification)
+
+To verify test counts:
+```bash
+pytest packages/ape-langchain/tests --collect-only -q
+```
 
 ## Quick Start
 

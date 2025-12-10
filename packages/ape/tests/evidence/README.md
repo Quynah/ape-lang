@@ -6,7 +6,7 @@ This directory contains **evidence-based test scenarios** that demonstrate APE's
 
 **Design Philosophy:**
 - ✅ **APE-first**: `.ape` files are primary artifacts, Python is subordinate
-- ✅ **No new features**: Uses existing v1.0.0 capabilities only
+- ✅ **No new features**: Uses existing v1.0.3 capabilities only
 - ✅ **Combined guarantees**: Each scenario tests multiple dimensions simultaneously
 - ✅ **Observable**: All scenarios include tracing and explanation
 
@@ -97,7 +97,7 @@ tests/evidence/
 
 ## 🎓 For Early Adopters
 
-These scenarios demonstrate that APE v1.0.0 can:
+These scenarios demonstrate that APE v1.0.3 can:
 
 1. **Execute complex logic** with conditionals and sequential steps
 2. **Work identically** in English or Dutch (or any future language)
@@ -138,6 +138,6 @@ All tests pass a `TraceCollector` to the executor. Traces capture:
 
 ---
 
-**Version:** APE v1.0.0  
+**Version:** APE v1.0.3  
 **Last Updated:** 2024 (Evidence Scenarios Release)  
 **Status:** ✅ All tests passing (393 total)

@@ -359,55 +359,13 @@ When using APE v1.0.x, you can rely on:
 
 ---
 
-## v0.4.0 — Error Model + Structured Types
+## v0.4.0 — Error Model + Structured Types (PLANNED)
 
-**Status:** 🧱 SCAFFOLDED (Structure exists, not integrated)  
+**Status:** 🟡 PLANNED  
 **Expected:** Q1 2026  
 **Focus:** Enhanced error handling, structured data types
 
-### What Currently Exists (Scaffolded)
-
-**Error Handling Infrastructure**
-- ✅ AST nodes for try/catch/finally exist in `src/ape/parser/ast_nodes.py`
-- ✅ Documentation: `docs/error_model.md`
-- ❌ Not integrated into executor
-- ❌ Not wired into semantic validator
-- ❌ Returns `NotImplementedError` if executed
-
-**Structured Types Infrastructure**
-- ✅ Type classes exist: `src/ape/types/list_type.py`, `map_type.py`, `record_type.py`, `tuple_type.py`
-- ✅ Documentation: `docs/typesystem.md`
-- ✅ Type validator scaffold: `src/ape/validator/types.py` (**SCAFFOLDED** header added)
-- ❌ Not integrated into type system
-- ❌ Not wired into semantic validation
-- ❌ No runtime support for operations
-
-**Current Error Handling (Implemented)**
-- ✅ Unified error hierarchy (ApeError + 8 specific types)
-- ✅ ErrorContext for semantic information
-- ✅ Runtime errors with clear messages
-- ❌ No user-level exception handling
-- ❌ No try/catch constructs in execution flow
-
-**Current Type Support (Implemented)**
-- ✅ Basic types: Integer, Boolean, String
-- ✅ Type annotations in task inputs/outputs
-- ✅ Type validation at runtime
-- ❌ No structured types (lists, maps, records)
-- ❌ No generic types
-- ❌ No type inference
-
-### Integration Work Required
-
-1. Wire try/catch/finally AST nodes into `RuntimeExecutor.execute()`
-2. Implement exception propagation in execution context
-3. Connect type validator to semantic validation pipeline
-4. Add runtime support for List<T>, Map<K,V> operations
-5. Implement type inference engine
-6. Add comprehensive tests for exception handling
-7. Add comprehensive tests for structured types
-
-### Planned Features (After Integration)
+### Planned Features
 
 **Enhanced Error Model**
 - Exception handling constructs (`try`/`catch`/`finally`)
@@ -428,65 +386,55 @@ When using APE v1.0.x, you can rely on:
 - Type aliases for clarity
 - Union types (maybe)
 
-### Documentation Status
+### What Currently Exists
 
-- ✅ `docs/error_model.md` - Complete specification
-- ✅ `docs/typesystem.md` - Complete specification
-- ❌ Integration guide needed
-- ❌ Migration guide from 1.x to 0.4.x needed
+**Current Error Handling**
+- ✅ Unified error hierarchy (ApeError + 8 specific types)
+- ✅ ErrorContext for semantic information
+- ✅ Runtime errors with clear messages
+- ❌ No user-level exception handling
+- ❌ No try/catch constructs
+
+**Current Type Support**
+- ✅ Basic types: Integer, Boolean, String
+- ✅ Type annotations in task inputs/outputs
+- ✅ Type validation at runtime
+- ❌ No structured types (lists, maps, records)
+- ❌ No generic types
+- ❌ No type inference
+
+### Expected Implementation
+
+- AST nodes for exception handling constructs
+- Type system infrastructure in semantic validator
+- Runtime support for structured type operations
+- Extended standard library for collection operations
+- Comprehensive tests for error handling and types
+- Updated specification document
+
+### Documentation Needed
+
+- Error handling guide
+- Type system specification
+- Collection operations reference
+- Migration guide from 1.x to 0.4.x
 
 ---
 
-## v0.5.0 — Expanded Standard Library
+## v0.5.0 — Expanded Standard Library (PLANNED)
 
-**Status:** 🧱 SCAFFOLDED (Structure exists, not integrated)  
+**Status:** 🟡 PLANNED  
 **Expected:** Q2 2026  
 **Focus:** String operations, JSON parsing, extended math
 
-### What Currently Exists (Scaffolded)
+### Planned Features
 
-**JSON Module (Scaffolded)**
-- ✅ File exists: `src/ape/std/json.py`
-- ✅ Documentation: `docs/stdlib_json.md`
-- ❌ Stub implementations only
-- ❌ Not wired into runtime intrinsics
-- ❌ Returns `NotImplementedError` if called
-
-**Extended Math Module (Scaffolded)**
-- ✅ File exists: `src/ape/std/math_ext.py`
-- ✅ Documentation: `docs/stdlib_math_ext.md`
-- ❌ Stub implementations only
-- ❌ Not wired into runtime intrinsics
-- ❌ Returns `NotImplementedError` if called
-
-**Current Standard Library (Implemented)**
-- ✅ **logic** - `src/ape/std/logic.py` (and_op, or_op, not_op, if_then_else)
-- ✅ **strings** - `src/ape/std/strings.py` (11 functions: length, upper, lower, contains, concat, split, join, trim, starts_with, ends_with, substring)
-- ✅ **collections** - `src/ape/std/collections.py` (13 functions: length, head, tail, is_empty, contains, map, filter, sort, sum_list, all_bool, any_bool, unique)
-- ✅ **math** - `src/ape/std/math.py` (15 functions: add, sub, mul, div, div_int, mod, power, abs, sqrt, factorial, min, max, clamp)
-- ✅ **comparison** - `src/ape/std/comparison.py` (6 functions: eq, neq, lt, lte, gt, gte)
-- ✅ 22 functions total, 158+ tests passing
-- ✅ Pure functions, deterministic, built into executor as runtime intrinsics
-- ✅ See: `docs/stdlib.md`, `docs/deterministic_math_and_logic.md`
-
-**Note on v1.0.2 stdlib extension:**
-Added deterministic primitives for comparison, logic, math, collections with:
-- Type-strict operations (no coercion: 1 ≠ 1.0)
-- Explicit error types (StdLibError hierarchy)
-- No truthy/falsy evaluation
-- Determinism validation (100-iteration tested)
-- Complete documentation
-
-### Integration Work Required
-
-1. Implement JSON parser (use Python's `json` module internally)
-2. Implement JSON serializer with type safety
-3. Implement extended math functions (trig, log, rounding)
-4. Wire new functions into runtime intrinsics
-5. Add comprehensive tests for JSON and extended math
-6. Update stdlib documentation
-
-### Planned Features (After Integration)
+**String Module**
+- String manipulation: split, join, replace, trim
+- String queries: contains, starts_with, ends_with, length
+- String transforms: uppercase, lowercase, capitalize
+- Regular expressions (basic)
+- String formatting
 
 **JSON Module**
 - JSON parsing: parse JSON strings to structured data
@@ -499,87 +447,60 @@ Added deterministic primitives for comparison, logic, math, collections with:
 - Logarithms: log, log10, ln
 - Rounding: round, floor, ceil
 - Constants: pi, e
-- Statistical functions: min, max, sum, average (some exist)
+- Statistical functions: min, max, sum, average
 
-**Extended Collections Module**
-- Advanced operations: reduce, zip, enumerate, range
+**Collections Module**
+- List operations: map, filter, reduce, sort, reverse
+- Map operations: keys, values, items, get, set
 - Set operations: union, intersection, difference
-- More list operations: reverse, partition
+- Collection queries: length, empty, contains
 
-### Documentation Status
+### What Currently Exists
 
-- ✅ `docs/stdlib_json.md` - Complete specification
-- ✅ `docs/stdlib_math_ext.md` - Complete specification
-- ✅ `docs/stdlib.md` - Covers implemented functions
-- ✅ `docs/deterministic_math_and_logic.md` - v1.0.2 extension guide
-- ❌ Integration guide needed
+**Current Standard Library**
+- ✅ sys: print, exit
+- ✅ io: read_line, write_file, read_file (capability-gated, infrastructure only)
+- ✅ math: add, subtract, multiply, divide, power
+- ❌ No string operations
+- ❌ No JSON support
+- ❌ No advanced math
+- ❌ No collection operations
+
+**Note:** v1.0.1 added 4 pure stdlib modules:
+- Files: `src/ape/std/logic.py` (and_, or_, not_, if_then_else)
+- Files: `src/ape/std/strings.py` (length, uppercase, lowercase, contains, concat, split, join, trim, starts_with, ends_with, substring)
+- Files: `src/ape/std/collections.py` (length, head, tail, is_empty, contains, map, filter, sort)
+- Files: `src/ape/std/math.py` (add, subtract, multiply, divide, power, abs, sqrt, factorial)
+- 22 functions total, 86 tests passing
+- Pure functions, deterministic, built into executor as runtime intrinsics
+- See: `docs/stdlib.md`
+
+### Expected Implementation
+
+- New stdlib modules in `src/ape/std/`
+- Runtime intrinsics for stdlib functions
+- Type-safe function signatures
+- Comprehensive test coverage
+- Documentation for each function
+- Examples demonstrating usage
+
+### Documentation Needed
+
+- String operations reference
+- JSON parsing guide
+- Extended math reference
+- Collections operations guide
+- Updated stdlib documentation
 
 ---
 
-## v0.6.0 — Compiler Backend & VM
+## v0.6.0 — Stable Compiler Backend (PLANNED)
 
-**Status:** 🧱 SCAFFOLDED (Structure exists, not integrated)  
+**Status:** 🟡 PLANNED  
 **Expected:** Q3 2026  
 **Focus:** Compiler optimizations, bytecode VM exploration
 
-### What Currently Exists (Scaffolded)
-
-**Compiler Optimizer (Scaffolded)**
-- ✅ File exists: `src/ape/compiler/optimizer.py` (**SCAFFOLDED** header added)
-- ✅ Documentation: `docs/compiler_optimization.md`
-- ✅ Classes defined: `OptimizationPass`, `ConstantFolder`, `DeadCodeEliminator`, `CommonSubexpressionEliminator`, `LoopOptimizer`, `TailCallOptimizer`, `OptimizationPipeline`
-- ❌ Not wired into compilation pipeline
-- ❌ Stub implementations only
-- ❌ Returns `NotImplementedError` if called
-
-**Bytecode VM (Scaffolded)**
-- ✅ Files exist: `src/ape/vm/vm.py` (**SCAFFOLDED** header added), `src/ape/vm/instructions.py` (**SCAFFOLDED** header added)
-- ✅ Documentation: `docs/bytecode_vm.md`
-- ✅ Classes defined: `VirtualMachine`, `StackFrame`, `ExecutionContext`, instruction specs (30+ opcodes)
-- ❌ Not integrated into execution flow
-- ❌ Stub implementations only
-- ❌ No bytecode compiler exists
-
-**Benchmarking Infrastructure (Scaffolded)**
-- ✅ File exists: `src/ape/benchmarks/benchmark_runner.py` (**SCAFFOLDED** header added)
-- ✅ Documentation: `docs/performance_tuning.md`
-- ✅ Classes defined: `BenchmarkRunner`, `BenchmarkResult`, `BenchmarkComparison`
-- ❌ Not wired into test suite
-- ❌ No benchmark scenarios defined
-- ❌ Returns `NotImplementedError` if called
-
-**Current Compiler (Implemented)**
-- ✅ Lexer: `src/ape/tokenizer/tokenizer.py`
-- ✅ Parser: `src/ape/parser/parser.py`
-- ✅ AST nodes: `src/ape/parser/ast_nodes.py`
-- ✅ Semantic validator: `src/ape/compiler/validator.py`
-- ✅ Linker: `src/ape/linker.py`
-- ✅ Code generator: `src/ape/codegen/python_codegen.py` (Python target)
-- ✅ AST-based executor: `src/ape/runtime/executor.py`
-- ❌ No compiler optimizations
-- ❌ No bytecode VM
-- ❌ No performance profiling tools
-- ❌ No module caching
-
-**Current Backend (Implemented)**
-- Pure AST interpretation for runtime execution
-- Python code generation for compilation workflow
-- No bytecode or intermediate representation (beyond AST)
-- Deterministic execution prioritized over speed
-- Sandbox safety maintained
-
-### Integration Work Required
-
-1. Wire optimizer into compilation pipeline (parse → optimize → codegen)
-2. Implement optimization passes (constant folding, DCE, CSE)
-3. Build bytecode compiler (AST → bytecode)
-4. Implement VM instruction dispatch loop
-5. Connect VM to execution flow (alternative to AST executor)
-6. Create benchmark scenarios and wire into CI
-7. Add performance regression tests
-8. Maintain determinism guarantees across optimizations
-
-### Planned Features (After Integration)
+### Planned Features
 
 **Compiler Optimizations**
 - Constant folding
@@ -602,13 +523,31 @@ Added deterministic primitives for comparison, logic, math, collections with:
 - Parallel module compilation
 - Benchmark suite for tracking performance
 
-### Documentation Status
+### What Currently Exists
 
-- ✅ `docs/compiler_optimization.md` - Complete specification
-- ✅ `docs/bytecode_vm.md` - Complete specification
-- ✅ `docs/performance_tuning.md` - Complete guide
-- ❌ Integration guide needed
-- ❌ Performance benchmarking methodology needed
+**Current Compiler**
+- ✅ Lexer: `src/ape/tokenizer/tokenizer.py`
+- ✅ Parser: `src/ape/parser/parser.py`
+- ✅ AST nodes: `src/ape/parser/ast_nodes.py`
+- ✅ Semantic validator: `src/ape/compiler/validator.py`
+- ✅ Linker: `src/ape/linker.py`
+- ✅ Code generator: `src/ape/codegen/python_codegen.py` (Python target)
+- ✅ AST-based executor: `src/ape/runtime/executor.py`
+- ❌ No compiler optimizations
+- ❌ No bytecode VM
+- ❌ No performance profiling tools
+- ❌ No module caching
+
+**Current Backend**
+- Pure AST interpretation for runtime execution
+- Python code generation for compilation workflow
+- No bytecode or intermediate representation (beyond AST)
+- Deterministic execution prioritized over speed
+- Sandbox safety maintained
+
+### Expected Implementation
+
+- Optimization passes in compiler pipeline
 - Bytecode format specification (if VM pursued)
 - VM implementation with instruction set
 - Performance benchmarking infrastructure

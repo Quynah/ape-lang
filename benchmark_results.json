@@ -1,0 +1,73 @@
+{
+  "environment": {
+    "python_version": "3.11.9",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 25 Model 117 Stepping 2, AuthenticAMD"
+  },
+  "benchmarks": {
+    "parse_simple": {
+      "name": "parse_simple",
+      "iterations": 100,
+      "total_time_ms": 14.014800195582211,
+      "avg_ms": 0.1401480019558221,
+      "min_ms": 0.13010000111535192,
+      "max_ms": 0.22369995713233948,
+      "std_dev_ms": 0.012822826688164292
+    },
+    "parse_control_flow": {
+      "name": "parse_control_flow",
+      "iterations": 100,
+      "total_time_ms": 19.350800139363855,
+      "avg_ms": 0.19350800139363855,
+      "min_ms": 0.1873999717645347,
+      "max_ms": 0.2806999837048352,
+      "std_dev_ms": 0.011970995630300876
+    },
+    "parse_stdlib": {
+      "name": "parse_stdlib",
+      "iterations": 100,
+      "total_time_ms": 34.29640003014356,
+      "avg_ms": 0.3429640003014356,
+      "min_ms": 0.3305000136606395,
+      "max_ms": 0.4979000077582896,
+      "std_dev_ms": 0.026621939637959793
+    },
+    "link_simple": {
+      "name": "link_simple",
+      "iterations": 100,
+      "total_time_ms": 50.46949995448813,
+      "avg_ms": 0.5046949995448813,
+      "min_ms": 0.43670000741258264,
+      "max_ms": 0.8730000117793679,
+      "std_dev_ms": 0.0670638932217052
+    },
+    "link_stdlib": {
+      "name": "link_stdlib",
+      "iterations": 100,
+      "total_time_ms": 209.38170002773404,
+      "avg_ms": 2.0938170002773404,
+      "min_ms": 1.8927000346593559,
+      "max_ms": 2.937800018116832,
+      "std_dev_ms": 0.169493694190142
+    },
+    "runtime_simple": {
+      "name": "runtime_simple",
+      "iterations": 100,
+      "total_time_ms": 7.599900127388537,
+      "avg_ms": 0.07599900127388537,
+      "min_ms": 0.07219996768981218,
+      "max_ms": 0.13050000416114926,
+      "std_dev_ms": 0.007332635044501451
+    },
+    "runtime_control_flow": {
+      "name": "runtime_control_flow",
+      "iterations": 100,
+      "total_time_ms": 0.5824000108987093,
+      "avg_ms": 0.005824000108987093,
+      "min_ms": 0.005599984433501959,
+      "max_ms": 0.009200011845678091,
+      "std_dev_ms": 0.0004532992191575481
+    }
+  }
+}

@@ -218,6 +218,7 @@ STEP_VERBS: WordClass = WordClass(
             "deterministic",
             "display",
             "divide",
+            "else",
             "ensure",
             "exit",
             "extract",

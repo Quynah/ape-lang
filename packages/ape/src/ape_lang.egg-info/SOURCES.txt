@@ -6,8 +6,10 @@ pyproject.toml
 ape_std/README.md
 ape_std/io.ape
 ape_std/math.ape
+ape_std/risk.ape
 ape_std/sys.ape
 docs/APE_1.0_SPECIFICATION.md
+docs/APE_TESTING_GUARANTEES.md
 docs/CAPABILITY_ADAPTER_BOUNDARY.md
 docs/PUBLIC_API_CONTRACT.md
 docs/README.md
@@ -32,6 +34,13 @@ docs/stdlib_json.md
 docs/stdlib_math_ext.md
 docs/stdlib_v0.1.md
 docs/typesystem.md
+docs/archive/PYPI_RELEASE_CHECKLIST.md
+docs/archive/PYPI_RELEASE_SUMMARY.md
+docs/archive/RELEASE_BODY_v1.0.0.md
+docs/archive/RELEASE_CHECKLIST.md
+docs/archive/RELEASE_NOTES.md
+docs/archive/RELEASE_NOTES_v0.2.0.md
+docs/archive/RELEASE_SUMMARY.md
 examples/MODULES_README.md
 examples/README.md
 examples/calculator_basic.ape

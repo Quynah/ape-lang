@@ -50,8 +50,8 @@ task test:
 """
         ast = parse_ape_source(source)
         collector = TraceCollector()
-        executor = RuntimeExecutor(trace=collector, allow_execution=True)
-        context = ExecutionContext(dry_run=False)
+        executor = RuntimeExecutor(trace=collector)
+        context = ExecutionContext()
         context.set("x", 5)
         
         executor.execute(ast, context)
@@ -104,7 +104,7 @@ task test:
     
     def test_create_snapshot_primitives(self):
         """Test snapshot creation with primitive types"""
-        context = ExecutionContext(dry_run=False)
+        context = ExecutionContext()
         context.set("int_val", 42)
         context.set("str_val", "hello")
         context.set("bool_val", True)
@@ -119,7 +119,7 @@ task test:
     
     def test_create_snapshot_collections(self):
         """Test snapshot creation with simple collections"""
-        context = ExecutionContext(dry_run=False)
+        context = ExecutionContext()
         context.set("list_val", [1, 2, 3])
         context.set("dict_val", {"a": 1, "b": 2})
         
@@ -181,7 +181,7 @@ class TestDryRunMode:
     
     def test_dry_run_allows_reads(self):
         """Test that dry-run mode allows variable reads"""
-        context = ExecutionContext(dry_run=False)
+        context = ExecutionContext()
         context.set("x", 10)
         
         # Switch to dry-run mode
@@ -218,7 +218,7 @@ task test:
     
     def test_can_mutate_check(self):
         """Test can_mutate method"""
-        context_normal = ExecutionContext(dry_run=False)
+        context_normal = ExecutionContext()
         context_dry = ExecutionContext(dry_run=True)
         
         assert context_normal.can_mutate() is True
@@ -332,7 +332,7 @@ class TestIntegration:
     def test_all_features_together(self):
         """Test tracing, dry-run, and capabilities together"""
         collector = TraceCollector()
-        _executor = RuntimeExecutor(trace=collector, dry_run=True)
+        executor = RuntimeExecutor(trace=collector, dry_run=True)
         context = ExecutionContext(dry_run=True)
         context.allow("io.read")
         

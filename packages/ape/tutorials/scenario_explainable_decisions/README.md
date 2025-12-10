@@ -213,7 +213,7 @@ This pattern helps with:
 
 **Guarantees:** Deterministic, traceable, explainable, replay-safe  
 **Real-world use:** Credit scoring, compliance, medical decisions  
-**APE version:** v1.0.0
+**APE version:** v1.0.3
 
 ---
 

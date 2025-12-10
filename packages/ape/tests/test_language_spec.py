@@ -204,9 +204,9 @@ class TestLanguageSpec:
     
     def test_step_verbs_count(self):
         """Verify STEP_VERBS has expected count for v1.0."""
-        # v1.0 complete spec has 47 step verbs (expanded from initial 34)
-        assert len(STEP_VERBS.words) == 47, (
-            f"Expected 47 step verbs for v1.0 complete, found {len(STEP_VERBS.words)}"
+        # v1.0 complete spec has 48 step verbs (expanded from initial 34, includes control flow 'else')
+        assert len(STEP_VERBS.words) == 48, (
+            f"Expected 48 step verbs for v1.0 complete, found {len(STEP_VERBS.words)}"
         )
     
     def test_critical_step_verbs_present(self):

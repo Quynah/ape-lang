@@ -2,7 +2,7 @@
 
 ## What Are These Tutorials?
 
-These tutorials are **scenario-driven demonstrations** of APE v1.0.0 capabilities. Each tutorial:
+These tutorials are **scenario-driven demonstrations** of APE v1.0.3 capabilities. Each tutorial:
 
 - **Proves, not promises**: Every scenario runs today with existing features
 - **Stands alone**: No sequence, no prerequisites, no learning path
@@ -114,6 +114,6 @@ APE tutorials are **evidence-based proofs**, not step-by-step guides. We show:
 
 ---
 
-**Version:** APE v1.0.0  
+**Version:** APE v1.0.3  
 **Last Updated:** December 2025  
 **Status:** All tutorials executable and tested

@@ -1,19 +1,22 @@
 """
-APE Structured Types System (v1.0.0 Scaffold)
+APE Structured Types System
 
 This package provides structured data types for APE:
-- List<T> - Ordered collections
-- Map<K, V> - Key-value mappings
-- Record - Named field structures
-- Tuple - Fixed-size heterogeneous collections
+- List<T> - Immutable ordered collections (v1.x production)
+- Tuple - Immutable fixed-size heterogeneous collections (v1.x production)
+- Map<K, V> - Key-value mappings (v1.0.0 scaffold)
+- Record - Named field structures (v1.0.0 scaffold)
 
 Author: David Van Aelst
-Status: Scaffold - implementation pending
+Status: Lists and Tuples are production-ready; Map and Record are scaffolded
 """
 
-from .list_type import ApeList
+from .list_type import ApeList, list_map, list_filter, list_reduce, list_concat
 from .map_type import ApeMap
 from .record_type import ApeRecord
 from .tuple_type import ApeTuple
 
-__all__ = ['ApeList', 'ApeMap', 'ApeRecord', 'ApeTuple']
+__all__ = [
+    'ApeList', 'list_map', 'list_filter', 'list_reduce', 'list_concat',
+    'ApeMap', 'ApeRecord', 'ApeTuple'
+]

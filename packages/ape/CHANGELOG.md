@@ -1,5 +1,38 @@
 # Changelog
 
+## v1.0.3 — Control Flow Stability & Testing Guarantees (2025-12-10)
+
+**Type:** Patch release - Bug fixes and comprehensive testing
+
+### 🐛 Bug Fixes
+- **Critical:** Fixed while loop variable persistence bug
+  - `execute_while()` now executes loop body in same context instead of child_scope
+  - Variables properly persist across loop iterations
+  - Fixes counter updates and accumulator patterns in while loops
+
+### ✅ Tests
+- **Added 16 comprehensive control flow stability tests** (595 → 611 core tests)
+  - TestReturnInsideControlFlow: return statement propagation (3 tests)
+  - TestNestedControlFlow: nested if structures up to 3 levels (4 tests)
+  - TestBooleanExpressions: all comparison operators (3 tests)
+  - TestNegativeControlFlow: malformed syntax detection (3 tests)
+  - TestExecutionStability: deterministic 10x execution verification (3 tests)
+- Total: 611 collected (539 passing, 72 skipped)
+
+### 📚 Documentation
+- **New:** `docs/APE_TESTING_GUARANTEES.md` - comprehensive test guarantee documentation
+  - Documents all tested guarantees (determinism, control flow, error semantics, etc.)
+  - Maps each guarantee to specific test suites
+  - Lists intentional exclusions (performance, streaming, etc.)
+  - Includes test execution instructions
+- Updated all README test counts to reflect 611 core tests
+- Cross-referenced guarantee docs from all README files
+
+### 🔧 Tooling
+- Fixed `scripts/count_tests.py` type annotation (cwd: Optional[str])
+
+---
+
 ## v1.0.0 — Complete Language Release (2025-12-06)
 
 **Status:** ✅ Complete Language Specification  

@@ -211,8 +211,8 @@ def test_tutorial_executes_without_error(tutorial_path):
     context = SCENARIO_CONTEXTS.get(scenario_name, {})
     
     # Execute the tutorial
-    _result = run(source, context=context)
-
+    result = run(source, context=context)
+    
     # Basic validation: execution completed without errors
     # Note: result can be None for tutorials without explicit returns
 

@@ -414,9 +414,10 @@ entity A:
 """)
         
         linker = Linker()
-        _program = linker.link(a_file)
-
+        program = linker.link(a_file)
+        
         dep_graph = linker.get_dependency_graph()
+        
         assert "a" in dep_graph
         assert "b" in dep_graph
         assert "c" in dep_graph

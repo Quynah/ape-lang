@@ -109,7 +109,7 @@ APE is the **decision engine**, not the full application.
 
 **Guarantees:** Deterministic, traceable, replay-safe, side-effect free  
 **Real-world use:** Access control, compliance, risk scoring  
-**APE version:** v1.0.0
+**APE version:** v1.0.3
 
 ---
 

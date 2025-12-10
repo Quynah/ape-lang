@@ -132,54 +132,6 @@ def contains_text(text: str, fragment: str) -> bool:
     return fragment in text
 
 
-def concat(a: str, b: str) -> str:
-    """
-    Concatenate two strings.
-    
-    Pure string concatenation without side effects.
-    
-    Args:
-        a: First string
-        b: Second string
-        
-    Returns:
-        Concatenated string a + b
-        
-    Raises:
-        TypeError: If either argument is not a string
-    """
-    if not isinstance(a, str):
-        raise TypeError(f"concat requires string for first argument, got {type(a).__name__}")
-    
-    if not isinstance(b, str):
-        raise TypeError(f"concat requires string for second argument, got {type(b).__name__}")
-    
-    return a + b
-
-
-def contains(haystack: str, needle: str) -> bool:
-    """
-    Check if haystack contains needle.
-    
-    Args:
-        haystack: String to search in
-        needle: String to search for
-        
-    Returns:
-        True if haystack contains needle, False otherwise
-        
-    Raises:
-        TypeError: If either argument is not a string
-    """
-    if not isinstance(haystack, str):
-        raise TypeError(f"contains requires string for haystack, got {type(haystack).__name__}")
-    
-    if not isinstance(needle, str):
-        raise TypeError(f"contains requires string for needle, got {type(needle).__name__}")
-    
-    return needle in haystack
-
-
 __all__ = [
     'lower',
     'upper',
@@ -187,6 +139,4 @@ __all__ = [
     'starts_with',
     'ends_with',
     'contains_text',
-    'concat',
-    'contains',
 ]
