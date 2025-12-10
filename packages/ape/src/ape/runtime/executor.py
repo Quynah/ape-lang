@@ -360,8 +360,60 @@ class RuntimeExecutor:
             ReturnValue exceptions propagate up (not caught here)
         """
         result = None
-        for statement in block:
+        i = 0
+        while i < len(block):
+            statement = block[i]
+            
+            # Check if this is part of an if-elif-else chain
+            if isinstance(statement, StepNode) and hasattr(statement, 'action'):
+                action = statement.action.strip()
+                
+                # If we find an IF statement, look ahead for ELSE IF / ELSE
+                if action.startswith("if ") and hasattr(statement, 'substeps'):
+                    # Execute the if and collect elif/else blocks
+                    if_executed = False
+                    condition_text = action[3:].rstrip(':').strip()
+                    
+                    if self._eval_condition_simple(condition_text, context):
+                        # Execute if body as a block (allows nested if statements)
+                        result = self.execute_block(statement.substeps, context)
+                        if_executed = True
+                    
+                    # Look ahead for else if / else
+                    j = i + 1
+                    while j < len(block) and not if_executed:
+                        if j >= len(block):
+                            break
+                        next_statement = block[j]
+                        if not isinstance(next_statement, StepNode) or not hasattr(next_statement, 'action'):
+                            break
+                        
+                        next_action = next_statement.action.strip()
+                        
+                        # Check for else if
+                        if next_action.startswith("else if "):
+                            elif_condition = next_action[8:].rstrip(':').strip()
+                            if self._eval_condition_simple(elif_condition, context):
+                                result = self.execute_block(next_statement.substeps, context)
+                                if_executed = True
+                            j += 1
+                        # Check for else (handle both "else:" and "else :")
+                        elif next_action.rstrip(':').strip() == "else":
+                            result = self.execute_block(next_statement.substeps, context)
+                            if_executed = True
+                            j += 1
+                            break
+                        else:
+                            break
+                    
+                    # Skip past all the elif/else we just processed
+                    i = j
+                    continue
+            
+            # Regular statement execution
             result = self.execute(statement, context)
+            i += 1
+        
         return result
     
     def execute_step(self, node: StepNode, context: ExecutionContext) -> Any:
@@ -389,6 +441,8 @@ class RuntimeExecutor:
         """
         action = node.action.strip() if hasattr(node, "action") else ""
         
+        # Regular step patterns below...
+        
         # Pattern: set VARIABLE to VALUE
         m = re.match(r"set\s+(\w+)\s+to\s+(.+)", action)
         if m:
@@ -413,16 +467,38 @@ class RuntimeExecutor:
         if m:
             expr_text = m.group(1)
             
+            # Check if it's a tuple return (contains comma outside of strings)
+            if ',' in expr_text:
+                # Parse as tuple - split by comma and evaluate each part
+                parts = [part.strip() for part in expr_text.split(',')]
+                
+                # In dry-run mode, handle missing variables gracefully
+                if self.dry_run or context.dry_run:
+                    values = []
+                    for part in parts:
+                        try:
+                            values.append(self._eval_atom(part, context))
+                        except NameError:
+                            values.append(None)
+                    raise ReturnValue(ApeTuple(tuple(values)))
+                
+                # Normal execution - raise ReturnValue exception to exit task
+                values = [self._eval_atom(part, context) for part in parts]
+                raise ReturnValue(ApeTuple(tuple(values)))
+            
+            # Single value return
             # In dry-run mode, handle missing variables gracefully
             if self.dry_run or context.dry_run:
                 try:
-                    return self._eval_atom(expr_text.strip(), context)
+                    value = self._eval_atom(expr_text.strip(), context)
+                    raise ReturnValue(value)
                 except NameError:
                     # Variable doesn't exist (assignment was skipped in dry-run)
                     # Return None as placeholder
-                    return None
+                    raise ReturnValue(None)
             
-            return self._eval_atom(expr_text.strip(), context)
+            value = self._eval_atom(expr_text.strip(), context)
+            raise ReturnValue(value)
         
         # Original capability-gated no-op behavior
         if hasattr(node, 'function_name'):
@@ -504,6 +580,51 @@ class RuntimeExecutor:
         
         raise ExecutionError(f"Unsupported expression in step: {text}")
     
+    def _eval_condition_simple(self, condition_text: str, context: ExecutionContext) -> bool:
+        """
+        Evaluate a simple condition expression for if statements in task steps.
+        
+        Supports basic comparisons: <, >, <=, >=, ==, !=, equals
+        
+        Args:
+            condition_text: Condition expression text (e.g., "x < 10", "y equals true")
+            context: Execution context
+            
+        Returns:
+            Boolean result of condition
+        """
+        # Handle "equals" keyword (APE syntax)
+        if " equals " in condition_text:
+            parts = condition_text.split(" equals ")
+            if len(parts) == 2:
+                left = self._eval_atom(parts[0].strip(), context)
+                right = self._eval_atom(parts[1].strip(), context)
+                return left == right
+        
+        # Handle comparison operators
+        for op in ['<=', '>=', '==', '!=', '<', '>']:
+            if op in condition_text:
+                parts = condition_text.split(op)
+                if len(parts) == 2:
+                    left = self._eval_atom(parts[0].strip(), context)
+                    right = self._eval_atom(parts[1].strip(), context)
+                    
+                    if op == '<':
+                        return left < right
+                    elif op == '>':
+                        return left > right
+                    elif op == '<=':
+                        return left <= right
+                    elif op == '>=':
+                        return left >= right
+                    elif op == '==':
+                        return left == right
+                    elif op == '!=':
+                        return left != right
+        
+        # If no operator found, evaluate as boolean
+        return bool(self._eval_atom(condition_text, context))
+    
     def execute_module(self, node: ModuleNode, context: ExecutionContext) -> Any:
         """
         Execute a module node.
@@ -544,7 +665,12 @@ class RuntimeExecutor:
         """
         # Execute task steps
         if hasattr(node, 'steps') and node.steps:
-            return self.execute_block(node.steps, context)
+            try:
+                self.execute_block(node.steps, context)
+                # If no return statement, return None
+                return None
+            except ReturnValue as ret:
+                return ret.value
         return None
     
     def _get_required_capability(self, function_name: str) -> Optional[str]:

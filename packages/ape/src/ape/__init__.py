@@ -36,7 +36,7 @@ from ape.errors import (
 from ape.cli import build_project
 from ape.codegen.python_codegen import PythonCodeGenerator
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 
 class ApeCompileError(Exception):
@@ -100,6 +100,16 @@ def compile(source_or_path: Union[str, Path]) -> ApeModule:
 
         # Build project IR (includes linking)
         project = build_project(source_path)
+        
+        # Also parse to get AST for runtime execution
+        from ape.tokenizer.tokenizer import Tokenizer
+        from ape.parser.parser import Parser
+        with open(source_path, 'r', encoding='utf-8') as f:
+            source_code = f.read()
+        tokenizer = Tokenizer(source_code)
+        tokens = tokenizer.tokenize()
+        parser = Parser(tokens)
+        ast = parser.parse()
 
         # Generate Python code
         generator = PythonCodeGenerator(project)
@@ -119,6 +129,16 @@ def compile(source_or_path: Union[str, Path]) -> ApeModule:
             raise ApeCompileError(f"Failed to create module spec for {module_name}")
 
         python_module = importlib.util.module_from_spec(spec)
+        
+        # Inject AST and task cache before executing generated code
+        python_module.__dict__['_ape_ast'] = ast
+        python_module.__dict__['_task_cache'] = {}
+        
+        # Build task cache from AST
+        if hasattr(ast, 'tasks'):
+            for task in ast.tasks:
+                mangled_name = f"{ast.name}__{task.name}" if ast.name else task.name
+                python_module.__dict__['_task_cache'][mangled_name] = task
 
         # Execute the generated code in the module's namespace
         exec(generated.content, python_module.__dict__)

@@ -1,5 +1,48 @@
 # Changelog
 
+## v1.0.4 — Task Execution Runtime (2025-12-10)
+
+**Type:** Feature release - Runtime task execution with tuple returns and control flow
+
+### ✨ Features
+- **Task Execution Runtime:** Complete AST-based task execution via RuntimeExecutor
+  - Modified `compile()` to inject AST nodes into generated module via `_task_cache`
+  - Changed codegen to call RuntimeExecutor instead of raising NotImplementedError
+  - Tasks now execute their steps at runtime with full control flow support
+- **Tuple Return Support:** Multi-value returns from tasks
+  - Example: `return severity, tag, escalate_admin, escalate_license, suppress`
+  - ReturnValue exception with tuple unpacking
+- **If-Elif-Else Chain Detection:** Lookahead parsing to connect conditional chains
+  - `execute_block()` now detects and chains if-elif-else statements
+  - Fixed whitespace handling bug: normalize `"else :"` → `"else"` before comparison
+- **Early Return Support:** `return VALUE` statements exit tasks early
+  - ReturnValue exception propagates through execution stack
+- **Nested Control Flow:** Recursive `execute_block()` for nested if statements
+
+### 🐛 Bug Fixes
+- **Critical:** Fixed task execution raising NotImplementedError
+  - Root cause: Codegen had placeholder implementation
+  - Solution: Call RuntimeExecutor with cached AST nodes
+- **Critical:** Fixed if-elif-else whitespace handling
+  - Parser includes trailing whitespace (`"else :"` vs `"else:"`)
+  - Solution: Normalize with `.rstrip(':').strip()` before comparison
+
+### ✅ Tests
+- **Verified 8 comprehensive task execution scenarios:**
+  - Early return (< 30 days)
+  - Multiple severity levels (medium, high, critical)
+  - Escalation conditions (admin, license, both)
+  - Complex nested conditionals
+- Total: 611 tests passing (100% success rate)
+
+### 📚 Documentation
+- Updated `__init__.py` with AST injection documentation
+- Updated `python_codegen.py` with runtime execution comments
+- Updated `executor.py` with control flow chain detection
+- Created `RELEASE_NOTES_v1.0.4.md` with complete feature documentation
+
+---
+
 ## v1.0.3 — Control Flow Stability & Testing Guarantees (2025-12-10)
 
 **Type:** Patch release - Bug fixes and comprehensive testing

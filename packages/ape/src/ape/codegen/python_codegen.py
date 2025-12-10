@@ -130,6 +130,12 @@ class PythonCodeGenerator:
         parts.append(self._generate_header())
         parts.append("")
         
+        # Add task node registry if module has tasks
+        if module.tasks:
+            parts.append("# Task AST nodes for runtime execution")
+            parts.append("_task_ast_nodes = {}")
+            parts.append("")
+        
         # Generate enums first (needed by entities)
         for enum in module.enums:
             parts.append(self._emit_enum(enum))
@@ -332,8 +338,25 @@ from ape.runtime.core import RunContext"""
         
         lines.append('    """')
         
-        # Body (placeholder)
-        lines.append("    raise NotImplementedError")
+        # Body - use AST runtime execution
+        lines.append("    # Execute task via AST runtime")
+        lines.append("    from ape.runtime.executor import RuntimeExecutor")
+        lines.append("    from ape.runtime.context import ExecutionContext")
+        lines.append("    ")
+        lines.append("    # Get task node from module cache")
+        lines.append(f"    if '{func_name}' not in _task_cache:")
+        lines.append(f"        raise NotImplementedError(f'Task {func_name} not found in cache')")
+        lines.append(f"    task_node = _task_cache['{func_name}']")
+        lines.append("    ")
+        lines.append("    # Create execution context with inputs")
+        lines.append("    context = ExecutionContext()")
+        for input_field in task.inputs:
+            lines.append(f"    context.set('{input_field.name}', {input_field.name})")
+        lines.append("    ")
+        lines.append("    # Execute task")
+        lines.append("    executor = RuntimeExecutor()")
+        lines.append("    result = executor.execute_task(task_node, context)")
+        lines.append("    return result")
         
         return "\n".join(lines)
     
