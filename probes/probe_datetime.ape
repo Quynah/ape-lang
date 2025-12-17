@@ -1,0 +1,22 @@
+module probes_datetime
+
+import sys
+
+entity DateProbeResult:
+    now_value: DateTime
+    parsed_value: DateTime
+    comparison: Boolean
+
+task probe_datetime:
+    outputs:
+        result: DateProbeResult
+    constraints:
+        - deterministic
+    steps:
+        - call std.datetime.now to get current_time
+        - call std.datetime.subtract_days with current_time and 2 to get two_days_ago
+        - call std.datetime.parse_iso8601 with "2024-05-08T12:00:00Z" to get parsed_time
+        - call std.datetime.compare with current_time and parsed_time to get comparison
+        - create DateProbeResult with current_time and parsed_time and comparison
+        - call sys.print with result for visibility
+        - return result

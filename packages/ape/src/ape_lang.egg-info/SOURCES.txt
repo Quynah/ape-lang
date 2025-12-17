@@ -94,6 +94,7 @@ src/ape/runtime/trace.py
 src/ape/std/__init__.py
 src/ape/std/collections.py
 src/ape/std/comparison.py
+src/ape/std/datetime.py
 src/ape/std/errors.py
 src/ape/std/json.py
 src/ape/std/logic.py
@@ -103,6 +104,7 @@ src/ape/std/strings.py
 src/ape/tokenizer/__init__.py
 src/ape/tokenizer/tokenizer.py
 src/ape/types/__init__.py
+src/ape/types/datetime_type.py
 src/ape/types/list_type.py
 src/ape/types/map_type.py
 src/ape/types/record_type.py

@@ -1,0 +1,27 @@
+module probes_grouping
+
+import math
+
+entity DepartmentRecord:
+    department: String
+    score: Integer
+
+entity GroupingSummary:
+    buckets: Map<String, List<DepartmentRecord>>
+    counts: Map<String, Integer>
+    top_value: Integer
+
+task probe_grouping:
+    inputs:
+        records: List<DepartmentRecord>
+    outputs:
+        summary: GroupingSummary
+    constraints:
+        - deterministic
+    steps:
+        - call std.collections.group_by with records on department to get grouped_records
+        - call std.collections.count with grouped_records keys to get bucket_count
+        - call std.collections.map_items with grouped_records to compute bucket_sizes
+        - call std.collections.max with bucket_sizes to get top_value
+        - create GroupingSummary with grouped_records and bucket_sizes and top_value
+        - return summary

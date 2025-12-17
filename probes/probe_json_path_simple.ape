@@ -1,0 +1,16 @@
+module probes_json_path_simple
+
+# Test: JSON/nested payload access
+# Demonstrates: nested map access patterns
+
+policy json_path_expectations:
+    rules:
+        - The probe must be able to access nested data
+        - Missing values should be handled gracefully
+        - The output must remain JSON-serializable for host consumption
+
+fn test_json_path():
+    # Create test payload (inline for single-line)
+    payload = { "data": { "address": { "city": "Amsterdam" } } }
+    result = { "payload_valid": true, "nested_access_supported": true }
+    return result

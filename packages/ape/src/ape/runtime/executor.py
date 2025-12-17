@@ -16,6 +16,8 @@ from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsE
 from ape.runtime.trace import TraceCollector, TraceEvent, create_snapshot
 from ape.errors import CapabilityError
 from ape.std import logic, collections, strings, math
+from ape.std import datetime as datetime_module
+from ape.std import json as json_module
 from ape.types import ApeList, ApeTuple
 
 
@@ -50,6 +52,8 @@ class RuntimeExecutor:
         'std.collections': collections,
         'std.strings': strings,
         'std.math': math,
+        'std.datetime': datetime_module,
+        'json': json_module,
     }
     
     def __init__(

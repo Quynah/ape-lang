@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-langchain
-Version: 1.0.3
+Version: 1.0.4
 Summary: LangChain integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
@@ -14,7 +14,7 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development :: Libraries
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
-Requires-Dist: ape-lang>=1.0.3
+Requires-Dist: ape-lang>=1.0.4
 Requires-Dist: typing-extensions>=4.0.0
 Provides-Extra: langchain
 Requires-Dist: langchain>=0.1.0; extra == "langchain"

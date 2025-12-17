@@ -31,7 +31,8 @@ class SymbolTable:
         self.policies: Dict[str, PolicyNode] = {}
         self.builtin_types: Set[str] = {
             'String', 'Integer', 'Float', 'Boolean', 
-            'Any', 'List', 'Dict', 'Optional'
+            'Any', 'List', 'Dict', 'Map', 'Record', 'Optional',
+            'DateTime', 'Duration', 'Value'
         }
     
     def add_entity(self, entity: EntityNode, location: Location) -> Optional[ApeError]:

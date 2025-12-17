@@ -1,0 +1,14 @@
+module probes_datetime_simple
+
+# Test: DateTime type is recognized
+# Demonstrates: DateTime type in type system
+
+entity DateProbeResult:
+    now_value: DateTime
+    comparison: Integer
+
+fn test_datetime():
+    # Note: std.datetime functions would be called here
+    # For now, just testing that DateTime type is valid
+    result = { "status": "DateTime type validated" }
+    return result

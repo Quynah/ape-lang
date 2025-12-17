@@ -278,11 +278,11 @@ class Parser:
         
         # Parse return values (comma-separated for tuple returns)
         if not self._match(TokenType.NEWLINE):
-            node.values.append(self._parse_arithmetic_expression())
+            node.values.append(self._parse_expression())
             
             while self._match(TokenType.COMMA):
                 self._advance()  # consume comma
-                node.values.append(self._parse_arithmetic_expression())
+                node.values.append(self._parse_expression())
         
         self._expect(TokenType.NEWLINE)
         return node
@@ -367,8 +367,8 @@ class Parser:
         # Expect = sign
         self._expect(TokenType.ASSIGN)
         
-        # Parse value expression
-        node.value = self._parse_arithmetic_expression()
+        # Parse value expression (full expression, not just arithmetic)
+        node.value = self._parse_expression()
         
         self._expect(TokenType.NEWLINE)
         return node
@@ -780,7 +780,7 @@ class Parser:
     
     def _parse_primary_expression(self) -> ExpressionNode:
         """
-        Parse a primary expression (literal, identifier, function call, list, tuple, or index access).
+        Parse a primary expression (literal, identifier, function call, list, tuple, map/record, or index access).
         
         Supports:
         - Literals: 42, 3.14, "hello", true
@@ -788,15 +788,21 @@ class Parser:
         - Function calls: analyze(x, y)
         - Lists: [1, 2, 3]
         - Tuples: (1, 2, 3)
+        - Maps/Records: { "key": value } or { field: value }
         - Index access: list[0]
         """
-        from ape.parser.ast_nodes import ListNode, TupleNode, IndexAccessNode
+        from ape.parser.ast_nodes import ListNode, TupleNode, IndexAccessNode, MapNode
         
         token = self.current_token
         node = ExpressionNode(line=token.line, column=token.column)
         
+        # Map/Record literal
+        if self._match(TokenType.LBRACE):
+            map_node = self._parse_map()
+            node.map_node = map_node
+            
         # List literal
-        if self._match(TokenType.LBRACKET):
+        elif self._match(TokenType.LBRACKET):
             list_node = self._parse_list()
             node.list_node = list_node
             
@@ -936,6 +942,71 @@ class Parser:
             node.elements.append(self._parse_expression())
         
         self._expect(TokenType.RBRACKET)
+        return node
+    
+    def _parse_map(self) -> 'MapNode':
+        """
+        Parse map/record literal.
+        
+        Grammar:
+            map := '{' [key_value_pair (',' key_value_pair)* [',']] '}'
+            key_value_pair := (STRING | IDENTIFIER) ':' expression
+        
+        Examples:
+            {}
+            { "name": "Alice", "age": 30 }
+            { id: "abc", score: 100 }
+            { "a": { "b": 3 } }  # nested
+        """
+        from ape.parser.ast_nodes import MapNode
+        
+        token = self._expect(TokenType.LBRACE)
+        node = MapNode(line=token.line, column=token.column)
+        
+        # Empty map
+        if self._match(TokenType.RBRACE):
+            self._advance()
+            return node
+        
+        # Parse key-value pairs
+        while True:
+            # Parse key (string or identifier)
+            key_node = ExpressionNode(line=self.current_token.line, column=self.current_token.column)
+            if self._match(TokenType.STRING):
+                key_str = self._advance().value
+                key_node.value = key_str[1:-1]  # Strip quotes
+            elif self._match(TokenType.IDENTIFIER):
+                # Identifier as key (e.g., { name: "Alice" })
+                key_node.value = self._advance().value
+            else:
+                raise ParseError(
+                    f"Expected STRING or IDENTIFIER for map key, got {self.current_token.type.name}",
+                    self.current_token
+                )
+            
+            self._expect(TokenType.COLON)
+            
+            # Parse value
+            value_node = self._parse_expression()
+            
+            node.keys.append(key_node)
+            node.values.append(value_node)
+            
+            # Check for comma or end
+            if self._match(TokenType.COMMA):
+                self._advance()
+                # Allow trailing comma
+                if self._match(TokenType.RBRACE):
+                    break
+            elif self._match(TokenType.RBRACE):
+                break
+            else:
+                raise ParseError(
+                    f"Expected ',' or '}}' in map literal, got {self.current_token.type.name}",
+                    self.current_token
+                )
+        
+        self._expect(TokenType.RBRACE)
         return node
     
     def _match_expression_operator(self) -> bool:

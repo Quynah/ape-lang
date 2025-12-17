@@ -1,0 +1,30 @@
+module probes_json_path
+
+import io
+
+entity Payload:
+    data: Map<String, Any>
+
+entity JsonPathResult:
+    extracted: String
+    fallback_applied: Boolean
+
+policy json_path_expectations:
+    rules:
+        - The probe must be able to pull address.city via dotted path
+        - Missing values must fall back to the provided default
+        - The output must remain JSON-serializable for host consumption
+
+task probe_json_path:
+    inputs:
+        payload: Payload
+    outputs:
+        result: JsonPathResult
+    constraints:
+        - deterministic
+    steps:
+        - call json.get with payload.data and "address.city" and default equals "Unknown" to get city
+        - call json.get with payload.data and "metadata.owner" and default equals "system" to get owner
+        - set fallback_applied if owner equals "system"
+        - create JsonPathResult with city and fallback_applied
+        - return result

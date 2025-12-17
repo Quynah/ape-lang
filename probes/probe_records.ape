@@ -1,0 +1,22 @@
+module probes_records
+
+entity DecisionRecord:
+    id: String
+    score: Integer
+
+entity DecisionSummary:
+    records: List<DecisionRecord>
+    total: Integer
+
+task probe_records:
+    outputs:
+        summary: DecisionSummary
+    constraints:
+        - deterministic
+    steps:
+        - create DecisionRecord with id equals "alpha" and score equals 10
+        - create DecisionRecord with id equals "beta" and score equals 20
+        - create List<DecisionRecord> literal with both records in order
+        - count how many DecisionRecord values are present
+        - create DecisionSummary with the records list and total count
+        - return summary

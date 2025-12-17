@@ -131,9 +131,30 @@ def reduce(items: List[Any], reducer: Callable[[Any, Any], Any], initial: Any = 
         Final accumulated value
     
     Author: David Van Aelst
-    Status: v1.0.0 scaffold - implementation pending
+    Status: Decision Engine v2024
     """
-    raise NotImplementedError("reduce() not yet implemented")
+    if not isinstance(items, list):
+        raise TypeError(f"reduce requires list, got {type(items).__name__}")
+    
+    if not callable(reducer):
+        raise TypeError(f"reduce requires callable reducer, got {type(reducer).__name__}")
+    
+    if not items:
+        return initial
+    
+    if initial is None:
+        if not items:
+            raise ValueError("reduce of empty sequence with no initial value")
+        acc = items[0]
+        start_idx = 1
+    else:
+        acc = initial
+        start_idx = 0
+    
+    for item in items[start_idx:]:
+        acc = reducer(acc, item)
+    
+    return acc
 
 
 def reverse(items: List[Any]) -> List[Any]:
@@ -150,9 +171,12 @@ def reverse(items: List[Any]) -> List[Any]:
         New list with items in reverse order
     
     Author: David Van Aelst
-    Status: v1.0.0 scaffold - implementation pending
+    Status: Decision Engine v2024
     """
-    raise NotImplementedError("reverse() not yet implemented")
+    if not isinstance(items, list):
+        raise TypeError(f"reverse requires list, got {type(items).__name__}")
+    
+    return items[::-1]
 
 
 def sort(items: List[Any], key: Callable[[Any], Any] = None, reverse: bool = False) -> List[Any]:
@@ -172,12 +196,15 @@ def sort(items: List[Any], key: Callable[[Any], Any] = None, reverse: bool = Fal
         New sorted list
     
     Author: David Van Aelst
-    Status: v1.0.0 scaffold - implementation pending
+    Status: Decision Engine v2024
     """
-    raise NotImplementedError("sort() not yet implemented")
+    if not isinstance(items, list):
+        raise TypeError(f"sort requires list, got {type(items).__name__}")
+    
+    return sorted(items, key=key, reverse=reverse)
 
 
-def zip(list1: List[Any], list2: List[Any]) -> List[tuple]:
+def zip_lists(list1: List[Any], list2: List[Any]) -> List[tuple]:
     """
     Combine two lists into a list of pairs.
     
@@ -192,9 +219,14 @@ def zip(list1: List[Any], list2: List[Any]) -> List[tuple]:
         List of tuples pairing corresponding elements
     
     Author: David Van Aelst
-    Status: v1.0.0 scaffold - implementation pending
+    Status: Decision Engine v2024
     """
-    raise NotImplementedError("zip() not yet implemented")
+    if not isinstance(list1, list):
+        raise TypeError(f"zip requires list, got {type(list1).__name__}")
+    if not isinstance(list2, list):
+        raise TypeError(f"zip requires list, got {type(list2).__name__}")
+    
+    return list(zip(list1, list2))
 
 
 def enumerate_items(items: List[Any], start: int = 0) -> List[tuple]:
@@ -212,9 +244,240 @@ def enumerate_items(items: List[Any], start: int = 0) -> List[tuple]:
         List of (index, item) tuples
     
     Author: David Van Aelst
-    Status: v1.0.0 scaffold - implementation pending
+    Status: Decision Engine v2024
     """
-    raise NotImplementedError("enumerate_items() not yet implemented")
+    if not isinstance(items, list):
+        raise TypeError(f"enumerate_items requires list, got {type(items).__name__}")
+    
+    return list(enumerate(items, start=start))
+
+
+def range_list(start: int, stop: int = None, step: int = 1) -> List[int]:
+    """
+    Generate a list of integers in a range.
+    
+    Example:
+        range_list(5)  # [0, 1, 2, 3, 4]
+        range_list(1, 5)  # [1, 2, 3, 4]
+        range_list(0, 10, 2)  # [0, 2, 4, 6, 8]
+    
+    Args:
+        start: Start value (or stop if stop is None)
+        stop: Stop value (exclusive)
+        step: Step size
+    
+    Returns:
+        List of integers
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if stop is None:
+        return list(range(start))
+    return list(range(start, stop, step))
+
+
+def group_by(items: List[Any], key_func: Callable[[Any], Any]) -> dict:
+    """
+    Group items by a key function.
+    
+    Example:
+        records = [{"dept": "A", "score": 10}, {"dept": "B", "score": 20}, {"dept": "A", "score": 15}]
+        grouped = group_by(records, lambda r: r["dept"])
+        # {"A": [{...}, {...}], "B": [{...}]}
+    
+    Args:
+        items: Collection to group
+        key_func: Function to extract grouping key from each item
+    
+    Returns:
+        Dict mapping keys to lists of items
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"group_by requires list, got {type(items).__name__}")
+    
+    if not callable(key_func):
+        raise TypeError(f"group_by requires callable key_func, got {type(key_func).__name__}")
+    
+    result = {}
+    for item in items:
+        key = key_func(item)
+        if key not in result:
+            result[key] = []
+        result[key].append(item)
+    
+    return result
+
+
+def unique(items: List[Any]) -> List[Any]:
+    """
+    Return unique items from a collection (preserving order).
+    
+    Example:
+        unique([1, 2, 2, 3, 1])  # [1, 2, 3]
+    
+    Args:
+        items: Collection to deduplicate
+    
+    Returns:
+        New list with duplicates removed
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"unique requires list, got {type(items).__name__}")
+    
+    seen = set()
+    result = []
+    for item in items:
+        # For unhashable types, fall back to linear search
+        try:
+            if item not in seen:
+                seen.add(item)
+                result.append(item)
+        except TypeError:
+            if item not in result:
+                result.append(item)
+    
+    return result
+
+
+def max_value(items: List[Any], key: Callable[[Any], Any] = None) -> Any:
+    """
+    Find maximum value in a collection.
+    
+    Example:
+        max_value([1, 5, 3])  # 5
+        max_value(records, key=lambda r: r["score"])  # record with highest score
+    
+    Args:
+        items: Collection to search
+        key: Optional function to extract comparison value
+    
+    Returns:
+        Maximum item
+    
+    Raises:
+        ValueError: If collection is empty
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"max_value requires list, got {type(items).__name__}")
+    
+    if not items:
+        raise ValueError("max_value of empty sequence")
+    
+    return max(items, key=key)
+
+
+def min_value(items: List[Any], key: Callable[[Any], Any] = None) -> Any:
+    """
+    Find minimum value in a collection.
+    
+    Example:
+        min_value([1, 5, 3])  # 1
+        min_value(records, key=lambda r: r["score"])  # record with lowest score
+    
+    Args:
+        items: Collection to search
+        key: Optional function to extract comparison value
+    
+    Returns:
+        Minimum item
+    
+    Raises:
+        ValueError: If collection is empty
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"min_value requires list, got {type(items).__name__}")
+    
+    if not items:
+        raise ValueError("min_value of empty sequence")
+    
+    return min(items, key=key)
+
+
+def sum_values(items: List[Any]) -> Any:
+    """
+    Sum numeric values in a collection.
+    
+    Example:
+        sum_values([1, 2, 3])  # 6
+    
+    Args:
+        items: Collection of numeric values
+    
+    Returns:
+        Sum of all values
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"sum_values requires list, got {type(items).__name__}")
+    
+    return sum(items)
+
+
+def any_match(items: List[Any], predicate: Callable[[Any], bool]) -> bool:
+    """
+    Check if any item matches a predicate.
+    
+    Example:
+        any_match([1, 2, 3], lambda x: x > 2)  # True
+    
+    Args:
+        items: Collection to check
+        predicate: Function returning True for matching items
+    
+    Returns:
+        True if at least one item matches
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"any_match requires list, got {type(items).__name__}")
+    
+    if not callable(predicate):
+        raise TypeError(f"any_match requires callable predicate, got {type(predicate).__name__}")
+    
+    return any(predicate(item) for item in items)
+
+
+def all_match(items: List[Any], predicate: Callable[[Any], bool]) -> bool:
+    """
+    Check if all items match a predicate.
+    
+    Example:
+        all_match([1, 2, 3], lambda x: x > 0)  # True
+    
+    Args:
+        items: Collection to check
+        predicate: Function returning True for matching items
+    
+    Returns:
+        True if all items match
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"all_match requires list, got {type(items).__name__}")
+    
+    if not callable(predicate):
+        raise TypeError(f"all_match requires callable predicate, got {type(predicate).__name__}")
+    
+    return all(predicate(item) for item in items)
 
 
 def range_list(start: int, stop: int = None, step: int = 1) -> List[int]:
