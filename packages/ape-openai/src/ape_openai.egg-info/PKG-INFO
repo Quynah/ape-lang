@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-openai
-Version: 1.0.4
+Version: 1.0.5
 Summary: OpenAI integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
