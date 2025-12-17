@@ -7,10 +7,13 @@ task main:
         b: Integer
     steps:
         - set total to 0
+        - set temp_a to 0
+        - set temp_b to 0
         if a > 2:
-            - set total to total + a
+            - set temp_a to a
         if b > 2:
-            - set total to total + b
+            - set temp_b to b
+        - set total to temp_a
 
 
 

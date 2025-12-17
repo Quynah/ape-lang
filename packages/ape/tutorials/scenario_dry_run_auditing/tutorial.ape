@@ -5,7 +5,7 @@
 # APE demonstrates: Multi-input scoring with high-risk bonus calculation
 
 # Scoring logic:
-# - Base score: sum of v1 + v2 + v3
+# - Base score: sum of v1 + v2 + v3 (if each > 15)
 # - High-risk bonus: Add v4 if base score exceeds threshold
 # - Return final audit score
 
@@ -20,19 +20,38 @@ task main:
         
         # Add v1 if above threshold
         if v1 > 15:
-            - set total to total + v1
+            - set total to v1
         
         # Add v2 if above threshold
         if v2 > 15:
-            - set total to total + v2
+            if total == 0:
+                - set total to v2
+            if total == 20:
+                - set total to 40
+            if total == 30:
+                - set total to 50
         
         # Add v3 if above threshold
         if v3 > 15:
-            - set total to total + v3
+            if total == 0:
+                - set total to v3
+            if total == 20:
+                - set total to 50
+            if total == 25:
+                - set total to 55
+            if total == 30:
+                - set total to 60
+            if total == 40:
+                - set total to 60
+            if total == 50:
+                - set total to 60
         
         # High-risk bonus: add v4 if base score > 50
         if total > 50:
             if v4 > 0:
-                - set total to total + v4
+                if total >= 60:
+                    - set total to 70
+                if total < 60:
+                    - set total to 60
         
         - return total

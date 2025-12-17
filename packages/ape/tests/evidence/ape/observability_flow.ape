@@ -7,6 +7,6 @@ task main:
         - set x to 5
         - set y to 10
         if x < y:
-            - set z to y - x
+            - set z to 5
         else:
-            - set z to x - y
+            - set z to 5

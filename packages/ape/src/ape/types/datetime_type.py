@@ -16,115 +16,115 @@ from dataclasses import dataclass
 class ApeDateTime:
     """
     DateTime type for APE - immutable temporal point.
-    
+
     Always UTC, always ISO-8601 serializable.
     Runtime contract: DateTime → ISO-8601 UTC string
-    
+
     Example:
         now = ApeDateTime.now()
         parsed = ApeDateTime.parse_iso8601("2024-05-08T12:00:00Z")
     """
     _dt: datetime
-    
+
     def __post_init__(self):
         # Ensure UTC
         if self._dt.tzinfo is None:
             import warnings
             warnings.warn("DateTime created without timezone, assuming UTC")
-    
+
     @classmethod
     def now(cls) -> 'ApeDateTime':
         """Get current UTC time."""
         from datetime import timezone
         return cls(datetime.now(timezone.utc))
-    
+
     @classmethod
     def parse_iso8601(cls, iso_string: str) -> 'ApeDateTime':
         """
         Parse ISO-8601 string to DateTime.
-        
+
         Args:
             iso_string: ISO-8601 formatted string (e.g., "2024-05-08T12:00:00Z")
-        
+
         Returns:
             ApeDateTime instance
         """
         # Handle Z suffix (UTC)
         if iso_string.endswith('Z'):
             iso_string = iso_string[:-1] + '+00:00'
-        
+
         return cls(datetime.fromisoformat(iso_string))
-    
+
     def to_iso8601(self) -> str:
         """Convert to ISO-8601 string (UTC)."""
         return self._dt.isoformat().replace('+00:00', 'Z')
-    
+
     def subtract_days(self, days: int) -> 'ApeDateTime':
         """Subtract days from this datetime."""
         return ApeDateTime(self._dt - timedelta(days=days))
-    
+
     def subtract_hours(self, hours: int) -> 'ApeDateTime':
         """Subtract hours from this datetime."""
         return ApeDateTime(self._dt - timedelta(hours=hours))
-    
+
     def add_days(self, days: int) -> 'ApeDateTime':
         """Add days to this datetime."""
         return ApeDateTime(self._dt + timedelta(days=days))
-    
+
     def add_hours(self, hours: int) -> 'ApeDateTime':
         """Add hours to this datetime."""
         return ApeDateTime(self._dt + timedelta(hours=hours))
-    
+
     def add_minutes(self, minutes: int) -> 'ApeDateTime':
         """Add minutes to this datetime."""
         return ApeDateTime(self._dt + timedelta(minutes=minutes))
-    
+
     def add_seconds(self, seconds: int) -> 'ApeDateTime':
         """Add seconds to this datetime."""
         return ApeDateTime(self._dt + timedelta(seconds=seconds))
-    
+
     def subtract_minutes(self, minutes: int) -> 'ApeDateTime':
         """Subtract minutes from this datetime."""
         return ApeDateTime(self._dt - timedelta(minutes=minutes))
-    
+
     def subtract_seconds(self, seconds: int) -> 'ApeDateTime':
         """Subtract seconds from this datetime."""
         return ApeDateTime(self._dt - timedelta(seconds=seconds))
-    
+
     def format(self, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
         """Format datetime as string.
-        
+
         Args:
             fmt: Python strftime format string
-        
+
         Returns:
             Formatted datetime string
-        
+
         Example:
             dt.format('%Y-%m-%d')  # "2024-05-08"
         """
         return self._dt.strftime(fmt)
-    
+
     def is_weekend(self) -> bool:
         """Check if datetime falls on weekend (Saturday=5, Sunday=6)."""
         return self._dt.weekday() in (5, 6)
-    
+
     def days_between(self, other: 'ApeDateTime') -> int:
         """Calculate days between two datetimes (absolute value).
-        
+
         Args:
             other: Other datetime to compare
-        
+
         Returns:
             Absolute number of days between datetimes
         """
         delta = abs(self._dt - other._dt)
         return delta.days
-    
+
     def compare(self, other: 'ApeDateTime') -> int:
         """
         Compare two datetimes.
-        
+
         Returns:
             -1 if self < other
              0 if self == other
@@ -136,27 +136,27 @@ class ApeDateTime:
             return 1
         else:
             return 0
-    
+
     def __lt__(self, other: 'ApeDateTime') -> bool:
         return self._dt < other._dt
-    
+
     def __le__(self, other: 'ApeDateTime') -> bool:
         return self._dt <= other._dt
-    
+
     def __gt__(self, other: 'ApeDateTime') -> bool:
         return self._dt > other._dt
-    
+
     def __ge__(self, other: 'ApeDateTime') -> bool:
         return self._dt >= other._dt
-    
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ApeDateTime):
             return False
         return self._dt == other._dt
-    
+
     def __str__(self) -> str:
         return self.to_iso8601()
-    
+
     def __repr__(self) -> str:
         return f"ApeDateTime({self.to_iso8601()})"
 
@@ -165,48 +165,57 @@ class ApeDateTime:
 class ApeDuration:
     """
     Duration type for APE - immutable time span.
-    
+
     Runtime contract: Duration → seconds (int)
-    
+
     Example:
         d = ApeDuration.days(7)
         h = ApeDuration.hours(48)
     """
     _td: timedelta
-    
+
     @classmethod
     def days(cls, n: int) -> 'ApeDuration':
         """Create duration from days."""
         return cls(timedelta(days=n))
-    
+
+    @classmethod
+    def from_days(cls, days: int) -> 'ApeDuration':
+        """Create duration from days (alternative constructor)."""
+        return duration_days(days)  # Use existing days() function
+
     @classmethod
     def hours(cls, n: int) -> 'ApeDuration':
         """Create duration from hours."""
         return cls(timedelta(hours=n))
-    
+
     @classmethod
     def minutes(cls, n: int) -> 'ApeDuration':
         """Create duration from minutes."""
         return cls(timedelta(minutes=n))
-    
+
     @classmethod
     def seconds(cls, n: int) -> 'ApeDuration':
         """Create duration from seconds."""
         return cls(timedelta(seconds=n))
-    
-    def total_seconds(self) -> int:
+
+    def to_seconds(self) -> int:
         """Get total seconds."""
         return int(self._td.total_seconds())
-    
+
+    def total_seconds(self) -> int:
+        """Get total seconds (alias for to_seconds)."""
+        return self.to_seconds()
+
     def total_days(self) -> int:
         """Get total days (truncated)."""
         return self._td.days
-    
+
     def __str__(self) -> str:
-        return f"{self.total_seconds()}s"
-    
+        return f"{self.to_seconds()}s"
+
     def __repr__(self) -> str:
-        return f"ApeDuration({self.total_seconds()}s)"
+        return f"ApeDuration({self.to_seconds()}s)"
 
 
 # Datetime functions for std.datetime module

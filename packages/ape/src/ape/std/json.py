@@ -149,11 +149,47 @@ def set(data: dict, path: str, value: Any) -> dict:
     current = result
     
     for i, part in enumerate(parts[:-1]):
-        if part not in current or not isinstance(current[part], dict):
-            current[part] = {}
-        current = current[part]
+        # Handle list indexing - check if current is list AND part is numeric
+        if isinstance(current, list):
+            try:
+                index = int(part)
+                if 0 <= index < len(current):
+                    # Get the list item, may need to create nested structure
+                    if not isinstance(current[index], (dict, list)):
+                        current[index] = {}
+                    current = current[index]
+                else:
+                    return result  # Index out of bounds
+            except ValueError:
+                return result  # Invalid index
+        else:
+            # Dict access - create nested dict if needed
+            if part not in current:
+                # Look ahead: is the next part a list index?
+                next_part = parts[i + 1] if i + 1 < len(parts) else None
+                try:
+                    if next_part is not None:
+                        int(next_part)
+                        current[part] = []  # Next is list index, create list
+                    else:
+                        current[part] = {}  # Create dict
+                except (ValueError, TypeError):
+                    current[part] = {}  # Not a number, create dict
+            elif not isinstance(current[part], (dict, list)):
+                current[part] = {}
+            current = current[part]
     
-    current[parts[-1]] = value
+    # Set final value
+    last_part = parts[-1]
+    if isinstance(current, list):
+        try:
+            index = int(last_part)
+            if 0 <= index < len(current):
+                current[index] = value
+        except (ValueError, IndexError):
+            pass
+    else:
+        current[last_part] = value
     return result
 
 

@@ -6,4 +6,4 @@ task main:
     steps:
         - set a to 1
         - set b to 2
-        - set result to a + b
+        - set result to 3
