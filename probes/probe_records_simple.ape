@@ -1,0 +1,17 @@
+module probes_records_simple
+
+# Test: Create list of records using literals
+# Demonstrates: map literals, list literals, basic operations
+
+fn test_records_and_lists():
+    # Create records using map literals
+    record_a = { "id": "alpha", "score": 10 }
+    record_b = { "id": "beta", "score": 20 }
+    
+    # Create list
+    records_list = [record_a, record_b]
+    
+    # Create summary (without function calls for now - testing syntax only)
+    summary = { "records": records_list, "count": 2 }
+    
+    return summary

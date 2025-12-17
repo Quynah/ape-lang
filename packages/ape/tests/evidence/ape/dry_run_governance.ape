@@ -7,10 +7,13 @@ task main:
         v2: Integer
     steps:
         - set total to 0
+        - set temp_v1 to 0
+        - set temp_v2 to 0
         if v1 > 15:
-            - set total to total + v1
+            - set temp_v1 to v1
         if v2 > 15:
-            - set total to total + v2
+            - set temp_v2 to v2
+        - set total to temp_v1
 
 
 

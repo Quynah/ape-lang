@@ -6,7 +6,7 @@ These nodes directly represent the parsed grammar structure.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 
 @dataclass
@@ -95,7 +95,7 @@ class StepNode(ASTNode):
 class ExpressionNode(ASTNode):
     """
     Expression node for conditions and computations.
-    Can be a literal, identifier, operation, function call, list, tuple, or index access.
+    Can be a literal, identifier, operation, function call, list, tuple, map, or index access.
     """
     value: Any = None  # For literals
     identifier: Optional[str] = None  # For variable references
@@ -107,9 +107,10 @@ class ExpressionNode(ASTNode):
     function_name: Optional[str] = None
     arguments: List['ExpressionNode'] = field(default_factory=list)
     
-    # Tuple/List/Index support
+    # Tuple/List/Map/Index support
     tuple_node: Optional['TupleNode'] = None
     list_node: Optional['ListNode'] = None
+    map_node: Optional['MapNode'] = None
     index_access: Optional['IndexAccessNode'] = None
 
 
@@ -390,6 +391,38 @@ class IndexAccessNode(ASTNode):
     """
     target: ExpressionNode = None
     index: ExpressionNode = None
+
+
+@dataclass
+class MapNode(ASTNode):
+    """
+    Map/Dict literal node.
+    Represents key-value mapping (record or dictionary).
+    
+    Example:
+        { "name": "Alice", "age": 30 }
+        { id: "abc", score: 100 }
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    keys: List[ExpressionNode] = field(default_factory=list)
+    values: List[ExpressionNode] = field(default_factory=list)
+
+
+@dataclass
+class RecordNode(ASTNode):
+    """
+    Record literal node (named fields).
+    Sugar for Map with identifier keys.
+    
+    Example:
+        { name: "Alice", age: 30 }
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024
+    """
+    fields: Dict[str, ExpressionNode] = field(default_factory=dict)
 
 
 @dataclass

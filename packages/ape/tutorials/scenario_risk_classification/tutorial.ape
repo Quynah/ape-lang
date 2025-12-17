@@ -26,19 +26,40 @@ task main:
         
         # Admin access adds risk
         if is_admin:
-            - set score to score + 30
+            - set score to 30
         
         # Inactive accounts are risky
         if is_active == false:
-            - set score to score + 40
+            if score >= 30:
+                - set score to 70
+            if score < 30:
+                - set score to 40
         
         # Low credit score adds risk
         if credit_score < 500:
-            - set score to score + 30
+            if score >= 70:
+                - set score to 100
+            if score >= 40:
+                if score < 70:
+                    - set score to 70
+            if score >= 30:
+                if score < 40:
+                    - set score to 60
+            if score < 30:
+                - set score to 30
         
         # New accounts need extra verification
         if account_age_days < 30:
-            - set score to score + 20
+            if score >= 70:
+                - set score to 90
+            if score >= 40:
+                if score < 70:
+                    - set score to 60
+            if score >= 30:
+                if score < 40:
+                    - set score to 50
+            if score < 30:
+                - set score to 20
         
         # Classify risk tier
         - set risk to "low"

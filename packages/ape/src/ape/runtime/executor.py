@@ -16,6 +16,8 @@ from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsE
 from ape.runtime.trace import TraceCollector, TraceEvent, create_snapshot
 from ape.errors import CapabilityError
 from ape.std import logic, collections, strings, math
+from ape.std import datetime as datetime_module
+from ape.std import json as json_module
 from ape.types import ApeList, ApeTuple
 
 
@@ -50,6 +52,8 @@ class RuntimeExecutor:
         'std.collections': collections,
         'std.strings': strings,
         'std.math': math,
+        'std.datetime': datetime_module,
+        'json': json_module,
     }
     
     def __init__(
@@ -835,6 +839,24 @@ class RuntimeExecutor:
         # Variable reference
         if expr.identifier:
             return context.get(expr.identifier)
+        
+        # Map literal
+        if expr.map_node:
+            # Evaluate map literal
+            result = {}
+            for key_expr, val_expr in zip(expr.map_node.keys, expr.map_node.values):
+                # Keys should be string values
+                if key_expr.value is not None:
+                    key = str(key_expr.value)
+                elif key_expr.identifier:
+                    key = key_expr.identifier
+                else:
+                    raise ExecutionError(f"Invalid map key: {key_expr}", expr)
+                
+                # Evaluate value
+                value = self.evaluate_expression(val_expr, context)
+                result[key] = value
+            return result
         
         # Binary operation
         if expr.operator and expr.left and expr.right:

@@ -1,0 +1,12 @@
+module probes_grouping_simple
+
+# Test: Grouping data structures
+# Demonstrates: nested maps, lists of maps
+
+fn test_grouping():
+    # Create sample records  - inline for single-line map
+    records = [{ "department": "A", "score": 10 }, { "department": "B", "score": 20 }, { "department": "A", "score": 15 }]
+    
+    # Simulate grouped structure
+    summary = { "record_count": 3 }
+    return summary

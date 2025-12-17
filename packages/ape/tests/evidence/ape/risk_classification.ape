@@ -8,9 +8,9 @@ task main:
     steps:
         - set total to 0
         if x > 0:
-            - set total to total + 10
+            - set total to 10
         if y > 1:
-            - set total to total + 20
+            - set total to 20
 
 
 

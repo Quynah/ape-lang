@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ape-anthropic
-Version: 1.0.3
+Version: 1.0.5
 Summary: Anthropic Claude integration for APE (AI Programmatic Execution)
 Author-email: David Van Aelst <david@skyrah.be>
 License: MIT
@@ -15,7 +15,7 @@ Classifier: Topic :: Software Development :: Libraries
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: ape-lang>=1.0.3
+Requires-Dist: ape-lang>=1.0.4
 Requires-Dist: typing-extensions>=4.0.0
 Provides-Extra: anthropic
 Requires-Dist: anthropic>=0.18.0; extra == "anthropic"

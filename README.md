@@ -178,17 +178,28 @@ ape-lang/
 
 ## 🧪 Testing
 
-All packages have comprehensive test suites:
+APE includes a comprehensive runtime test suite covering:
+- **Core type system** (Record, Map, List, Value)
+- **DateTime & Duration semantics** (ISO-8601, UTC, arithmetic)
+- **Collection and aggregation primitives** (group_by, unique, max/min, any/all)
+- **JSON / nested data access** (dotted path navigation)
+
+### Run All Tests
 
 ```bash
-# Run core language tests (439 tests)
+# Run core language tests (523+ tests)
 cd packages/ape
 pytest
+
+# Run Decision Engine validation
+pytest tests/test_datetime.py tests/test_collections.py tests/test_json_path.py
 
 # Run integration tests
 cd packages/ape-anthropic
 pytest
 ```
+
+**Test Results:** See [TEST_RESULTS.md](TEST_RESULTS.md) for detailed validation evidence.
 
 ---
 
