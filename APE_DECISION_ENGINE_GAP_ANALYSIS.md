@@ -1,7 +1,7 @@
 # APE Decision Engine — Gap Analysis voor 110% Volledigheid
 
 **Datum:** 17 december 2024  
-**Versie:** Decision Engine v2024 (op basis van APE v1.0.4)  
+**Versie:** Decision Engine v2024 (op basis van APE v1.0.5)  
 **Doel:** Identificeren van ontbrekende features voor een volledige, productie-ready decision engine
 
 ---

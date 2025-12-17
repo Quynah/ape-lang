@@ -6,7 +6,7 @@ All probes successfully validate with the Decision Engine extensions.
 
 **Date:** 2024-12-17  
 **Branch:** feat/ape-decision-engine  
-**APE Version:** 1.0.4 + Decision Engine Extensions
+**APE Version:** 1.0.5 + Decision Engine Extensions
 
 ## Results
 
@@ -73,7 +73,7 @@ All probes successfully validate with the Decision Engine extensions.
 
 ## Conclusion
 
-The Decision Engine extensions successfully transform APE v1.0.4 into a capable decision platform supporting:
+The Decision Engine extensions successfully transform APE v1.0.5 into a capable decision platform supporting:
 - **Record/Map/List primitives** for structured data
 - **DateTime operations** for temporal logic
 - **Collection intelligence** (grouping, filtering, aggregation)

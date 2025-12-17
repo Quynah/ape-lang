@@ -3,7 +3,7 @@
 **Author:** David Van Aelst  
 **Status:** Decision Engine v2024 - Complete  
 **Date:** December 2024  
-**Version:** APE v1.0.4+DecisionEngine
+**Version:** APE v1.0.5+DecisionEngine
 
 ## Executive Summary
 

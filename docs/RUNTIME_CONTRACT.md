@@ -134,6 +134,6 @@ Functions requiring side effects (I/O, network) will be:
 ## Versioning
 
 **Version:** Decision Engine v2024  
-**APE Base:** 1.0.4  
+**APE Base:** 1.0.5  
 **Compatibility:** Breaking changes to runtime contract will increment major version  
 **Stability:** Types and functions in this contract are production-stable

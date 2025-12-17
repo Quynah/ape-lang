@@ -250,7 +250,7 @@ def run_probes(root: Path, probe_dir: Path) -> list[str]:
 
 
 def build_argument_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="APE v1.0.4 audit helper")
+    parser = argparse.ArgumentParser(description="APE v1.0.5 audit helper")
     parser.add_argument(
         "--root",
         type=Path,

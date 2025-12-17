@@ -223,7 +223,7 @@ task assess_risk:
 4. Compute score deterministically
 5. Return structured result
 
-## Migration from v1.0.4
+## Migration from v1.0.4 to v1.0.5
 
 ### New Capabilities
 ✅ Map/Record literals  
