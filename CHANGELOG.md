@@ -57,6 +57,14 @@
 - ✅ [APE_CORE_DECISION_MODEL.md](docs/APE_CORE_DECISION_MODEL.md) – Decision patterns & examples
 - ✅ [PROBE_RESULTS.md](PROBE_RESULTS.md) – Evidence-based validation results
 
+### ✅ Validation
+
+- Added full runtime test suite for the Decision Engine
+- Verified semantics using pytest (77 tests)
+- **Coverage:** DateTime operations, collection intelligence, nested data access, type system
+- **Pass Rate:** 74% (57/77 tests) - core features validated ✓
+- **Evidence:** [TEST_RESULTS.md](TEST_RESULTS.md) documents validation outcomes
+
 ### ⚠️ Known Limitations
 
 1. **Multi-line maps:** Parser requires single-line syntax for now

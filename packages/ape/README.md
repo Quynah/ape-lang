@@ -454,6 +454,53 @@ Future versions will compile to Ape bytecode and run on an Ape VM, making Python
 
 ---
 
+## Decision Engine Validation
+
+The APE Decision Engine is validated through a comprehensive runtime test suite
+that verifies semantic correctness beyond parsing.
+
+### Covered Areas
+
+**Runtime Type Evaluation**
+- Record literal creation and serialization
+- Map and List literal runtime behavior
+- Nested structure integrity
+- APE → Python type mapping
+
+**DateTime & Duration Semantics**
+- UTC-based temporal operations  
+- Deterministic datetime arithmetic
+- ISO-8601 serialization/deserialization
+- Comparison operations
+
+**Collection Intelligence**
+- Aggregation primitives (group_by, unique, sum/max/min)
+- Predicate functions (any_match, all_match)
+- Transformations (reduce, sort, reverse)
+- Edge case handling (empty lists, None values)
+
+**Nested Data Access**
+- Dotted path navigation (json.get)
+- Missing path graceful degradation
+- Immutable updates (json.set)
+- Mixed dict/list structure handling
+
+### Run Validation Tests
+
+```bash
+# Full Decision Engine test suite
+pytest tests/test_datetime.py tests/test_collections.py tests/test_json_path.py -v
+
+# Individual modules
+pytest tests/test_datetime.py -v
+pytest tests/test_collections.py -v
+pytest tests/test_json_path.py -v
+```
+
+**Test Results:** See [../../TEST_RESULTS.md](../../TEST_RESULTS.md) for detailed validation evidence.
+
+---
+
 ## Installation
 
 ### From PyPI
