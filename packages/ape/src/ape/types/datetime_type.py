@@ -75,6 +75,52 @@ class ApeDateTime:
         """Add hours to this datetime."""
         return ApeDateTime(self._dt + timedelta(hours=hours))
     
+    def add_minutes(self, minutes: int) -> 'ApeDateTime':
+        """Add minutes to this datetime."""
+        return ApeDateTime(self._dt + timedelta(minutes=minutes))
+    
+    def add_seconds(self, seconds: int) -> 'ApeDateTime':
+        """Add seconds to this datetime."""
+        return ApeDateTime(self._dt + timedelta(seconds=seconds))
+    
+    def subtract_minutes(self, minutes: int) -> 'ApeDateTime':
+        """Subtract minutes from this datetime."""
+        return ApeDateTime(self._dt - timedelta(minutes=minutes))
+    
+    def subtract_seconds(self, seconds: int) -> 'ApeDateTime':
+        """Subtract seconds from this datetime."""
+        return ApeDateTime(self._dt - timedelta(seconds=seconds))
+    
+    def format(self, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
+        """Format datetime as string.
+        
+        Args:
+            fmt: Python strftime format string
+        
+        Returns:
+            Formatted datetime string
+        
+        Example:
+            dt.format('%Y-%m-%d')  # "2024-05-08"
+        """
+        return self._dt.strftime(fmt)
+    
+    def is_weekend(self) -> bool:
+        """Check if datetime falls on weekend (Saturday=5, Sunday=6)."""
+        return self._dt.weekday() in (5, 6)
+    
+    def days_between(self, other: 'ApeDateTime') -> int:
+        """Calculate days between two datetimes (absolute value).
+        
+        Args:
+            other: Other datetime to compare
+        
+        Returns:
+            Absolute number of days between datetimes
+        """
+        delta = abs(self._dt - other._dt)
+        return delta.days
+    
     def compare(self, other: 'ApeDateTime') -> int:
         """
         Compare two datetimes.
@@ -194,6 +240,41 @@ def datetime_add_hours(dt: ApeDateTime, hours: int) -> ApeDateTime:
     return dt.add_hours(hours)
 
 
+def datetime_add_minutes(dt: ApeDateTime, minutes: int) -> ApeDateTime:
+    """Add minutes to datetime."""
+    return dt.add_minutes(minutes)
+
+
+def datetime_add_seconds(dt: ApeDateTime, seconds: int) -> ApeDateTime:
+    """Add seconds to datetime."""
+    return dt.add_seconds(seconds)
+
+
+def datetime_subtract_minutes(dt: ApeDateTime, minutes: int) -> ApeDateTime:
+    """Subtract minutes from datetime."""
+    return dt.subtract_minutes(minutes)
+
+
+def datetime_subtract_seconds(dt: ApeDateTime, seconds: int) -> ApeDateTime:
+    """Subtract seconds from datetime."""
+    return dt.subtract_seconds(seconds)
+
+
+def datetime_format(dt: ApeDateTime, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
+    """Format datetime as string."""
+    return dt.format(fmt)
+
+
+def datetime_is_weekend(dt: ApeDateTime) -> bool:
+    """Check if datetime falls on weekend."""
+    return dt.is_weekend()
+
+
+def datetime_days_between(dt1: ApeDateTime, dt2: ApeDateTime) -> int:
+    """Calculate days between two datetimes."""
+    return dt1.days_between(dt2)
+
+
 def datetime_compare(dt1: ApeDateTime, dt2: ApeDateTime) -> int:
     """Compare two datetimes (-1, 0, 1)."""
     return dt1.compare(dt2)
@@ -209,11 +290,21 @@ def duration_hours(n: int) -> ApeDuration:
     return ApeDuration.hours(n)
 
 
+def duration_minutes(n: int) -> ApeDuration:
+    """Create duration from minutes."""
+    return ApeDuration.minutes(n)
+
+
+def duration_seconds(n: int) -> ApeDuration:
+    """Create duration from seconds."""
+    return ApeDuration.seconds(n)
+
+
 __all__ = [
     'ApeDateTime', 'ApeDuration',
     'datetime_now', 'datetime_parse_iso8601',
-    'datetime_subtract_days', 'datetime_subtract_hours',
-    'datetime_add_days', 'datetime_add_hours',
-    'datetime_compare',
-    'duration_days', 'duration_hours'
+    'datetime_subtract_days', 'datetime_subtract_hours', 'datetime_subtract_minutes', 'datetime_subtract_seconds',
+    'datetime_add_days', 'datetime_add_hours', 'datetime_add_minutes', 'datetime_add_seconds',
+    'datetime_compare', 'datetime_format', 'datetime_is_weekend', 'datetime_days_between',
+    'duration_days', 'duration_hours', 'duration_minutes', 'duration_seconds'
 ]

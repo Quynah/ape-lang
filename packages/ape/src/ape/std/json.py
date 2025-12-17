@@ -28,11 +28,16 @@ def parse(json_string: str) -> JSONValue:
         Parsed JSON as Map, List, or primitive value
     
     Raises:
-        ParseError: If JSON is malformed
+        ValueError: If JSON is malformed
     
-    TODO: Implement JSON parser
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
     """
-    raise NotImplementedError("json.parse() not yet implemented")
+    import json as python_json
+    try:
+        return python_json.loads(json_string)
+    except python_json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON: {e}")
 
 
 def stringify(data: JSONValue, indent: Optional[int] = None) -> str:
@@ -50,9 +55,11 @@ def stringify(data: JSONValue, indent: Optional[int] = None) -> str:
     Returns:
         JSON string representation
     
-    TODO: Implement JSON serializer
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
     """
-    raise NotImplementedError("json.stringify() not yet implemented")
+    import json as python_json
+    return python_json.dumps(data, indent=indent)
 
 
 def get(data: Any, path: str, default: Any = None) -> Any:
@@ -150,25 +157,97 @@ def set(data: dict, path: str, value: Any) -> dict:
     return result
 
 
-def has(data: Dict[str, Any], path: str) -> bool:
+def has_path(data: Any, path: str) -> bool:
     """
     Check if a path exists in JSON data.
     
     Example:
         data = {"user": {"name": "Alice"}}
-        json.has(data, "user.name")  # true
-        json.has(data, "user.email")  # false
+        json.has_path(data, "user.name")  # True
+        json.has_path(data, "user.email")  # False
     
     Args:
-        data: JSON object (Map)
+        data: JSON object (Map/Dict or List)
         path: Dot-separated path
     
     Returns:
         True if path exists, False otherwise
     
-    TODO: Implement path existence check
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
     """
-    raise NotImplementedError("json.has() not yet implemented")
+    if not path:
+        return True
+    
+    parts = path.split('.')
+    current = data
+    
+    for part in parts:
+        if current is None:
+            return False
+        
+        # Handle dict access
+        if isinstance(current, dict):
+            if part not in current:
+                return False
+            current = current[part]
+        # Handle list/array index access
+        elif isinstance(current, list):
+            try:
+                index = int(part)
+                if index < 0 or index >= len(current):
+                    return False
+                current = current[index]
+            except (ValueError, IndexError):
+                return False
+        # Handle object attribute access
+        elif hasattr(current, part):
+            current = getattr(current, part)
+        else:
+            return False
+    
+    return True
 
 
-__all__ = ['parse', 'stringify', 'get', 'set', 'has']
+def flatten(data: Dict[str, Any], prefix: str = '') -> Dict[str, Any]:
+    """
+    Flatten nested JSON structure to dotted keys.
+    
+    Example:
+        data = {"user": {"name": "Alice", "address": {"city": "NYC"}}}
+        json.flatten(data)
+        # {"user.name": "Alice", "user.address.city": "NYC"}
+    
+    Args:
+        data: Nested JSON object
+        prefix: Key prefix (used internally for recursion)
+    
+    Returns:
+        Flattened dict with dotted keys
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    result = {}
+    
+    for key, value in data.items():
+        full_key = f"{prefix}.{key}" if prefix else key
+        
+        if isinstance(value, dict):
+            # Recursively flatten nested dicts
+            result.update(flatten(value, full_key))
+        elif isinstance(value, list):
+            # Flatten list elements with index
+            for i, item in enumerate(value):
+                item_key = f"{full_key}.{i}"
+                if isinstance(item, dict):
+                    result.update(flatten(item, item_key))
+                else:
+                    result[item_key] = item
+        else:
+            result[full_key] = value
+    
+    return result
+
+
+__all__ = ['parse', 'stringify', 'get', 'set', 'has_path', 'flatten']

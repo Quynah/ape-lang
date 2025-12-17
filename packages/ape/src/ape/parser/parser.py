@@ -957,11 +957,18 @@ class Parser:
             { "name": "Alice", "age": 30 }
             { id: "abc", score: 100 }
             { "a": { "b": 3 } }  # nested
+            {
+                "multi": "line",
+                "map": "supported"
+            }
         """
         from ape.parser.ast_nodes import MapNode
         
         token = self._expect(TokenType.LBRACE)
         node = MapNode(line=token.line, column=token.column)
+        
+        # Skip newlines after opening brace for multi-line maps
+        self._skip_newlines()
         
         # Empty map
         if self._match(TokenType.RBRACE):
@@ -970,6 +977,9 @@ class Parser:
         
         # Parse key-value pairs
         while True:
+            # Skip newlines before key
+            self._skip_newlines()
+            
             # Parse key (string or identifier)
             key_node = ExpressionNode(line=self.current_token.line, column=self.current_token.column)
             if self._match(TokenType.STRING):
@@ -992,9 +1002,14 @@ class Parser:
             node.keys.append(key_node)
             node.values.append(value_node)
             
+            # Skip newlines after value
+            self._skip_newlines()
+            
             # Check for comma or end
             if self._match(TokenType.COMMA):
                 self._advance()
+                # Skip newlines after comma
+                self._skip_newlines()
                 # Allow trailing comma
                 if self._match(TokenType.RBRACE):
                     break

@@ -480,40 +480,236 @@ def all_match(items: List[Any], predicate: Callable[[Any], bool]) -> bool:
     return all(predicate(item) for item in items)
 
 
-def range_list(start: int, stop: int = None, step: int = 1) -> List[int]:
+def find(items: List[Any], predicate: Callable[[Any], bool], default: Any = None) -> Any:
     """
-    Generate a list of integers in a range.
+    Find first item matching a predicate.
     
     Example:
-        range_list(5)  # [0, 1, 2, 3, 4]
-        range_list(2, 8)  # [2, 3, 4, 5, 6, 7]
-        range_list(0, 10, 2)  # [0, 2, 4, 6, 8]
+        find([1, 2, 3, 4], lambda x: x > 2)  # 3
+        find([1, 2], lambda x: x > 5, default=-1)  # -1
     
     Args:
-        start: Starting value (or stop if stop is None)
-        stop: Ending value (exclusive)
-        step: Step size
+        items: Collection to search
+        predicate: Function returning True for match
+        default: Value to return if no match found
     
     Returns:
-        List of integers
+        First matching item, or default if none found
     
     Author: David Van Aelst
-    Status: v1.0.0 scaffold - implementation pending
+    Status: Decision Engine v2024 - Complete
     """
-    raise NotImplementedError("range_list() not yet implemented")
+    if not isinstance(items, list):
+        raise TypeError(f"find requires list, got {type(items).__name__}")
+    
+    if not callable(predicate):
+        raise TypeError(f"find requires callable predicate, got {type(predicate).__name__}")
+    
+    for item in items:
+        if predicate(item):
+            return item
+    return default
+
+
+def find_index(items: List[Any], predicate: Callable[[Any], bool]) -> int:
+    """
+    Find index of first item matching a predicate.
+    
+    Example:
+        find_index([1, 2, 3, 4], lambda x: x > 2)  # 2
+        find_index([1, 2], lambda x: x > 5)  # -1
+    
+    Args:
+        items: Collection to search
+        predicate: Function returning True for match
+    
+    Returns:
+        Index of first matching item, or -1 if none found
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"find_index requires list, got {type(items).__name__}")
+    
+    if not callable(predicate):
+        raise TypeError(f"find_index requires callable predicate, got {type(predicate).__name__}")
+    
+    for i, item in enumerate(items):
+        if predicate(item):
+            return i
+    return -1
+
+
+def partition(items: List[Any], predicate: Callable[[Any], bool]) -> tuple:
+    """
+    Partition collection into two lists based on predicate.
+    
+    Example:
+        partition([1, 2, 3, 4], lambda x: x % 2 == 0)
+        # ([2, 4], [1, 3])
+    
+    Args:
+        items: Collection to partition
+        predicate: Function returning True for items in first partition
+    
+    Returns:
+        Tuple of (matched_items, unmatched_items)
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"partition requires list, got {type(items).__name__}")
+    
+    if not callable(predicate):
+        raise TypeError(f"partition requires callable predicate, got {type(predicate).__name__}")
+    
+    matched = []
+    unmatched = []
+    for item in items:
+        if predicate(item):
+            matched.append(item)
+        else:
+            unmatched.append(item)
+    
+    return (matched, unmatched)
+
+
+def take(items: List[Any], n: int) -> List[Any]:
+    """
+    Take first n items from a collection.
+    
+    Example:
+        take([1, 2, 3, 4, 5], 3)  # [1, 2, 3]
+    
+    Args:
+        items: Collection to take from
+        n: Number of items to take
+    
+    Returns:
+        New list with first n items
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"take requires list, got {type(items).__name__}")
+    
+    if not isinstance(n, int) or n < 0:
+        raise ValueError(f"take requires non-negative integer, got {n}")
+    
+    return items[:n]
+
+
+def skip(items: List[Any], n: int) -> List[Any]:
+    """
+    Skip first n items from a collection.
+    
+    Example:
+        skip([1, 2, 3, 4, 5], 2)  # [3, 4, 5]
+    
+    Args:
+        items: Collection to skip from
+        n: Number of items to skip
+    
+    Returns:
+        New list with first n items removed
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"skip requires list, got {type(items).__name__}")
+    
+    if not isinstance(n, int) or n < 0:
+        raise ValueError(f"skip requires non-negative integer, got {n}")
+    
+    return items[n:]
+
+
+def slice_items(items: List[Any], start: int, end: int = None) -> List[Any]:
+    """
+    Extract a slice of items from a collection.
+    
+    Example:
+        slice_items([1, 2, 3, 4, 5], 1, 4)  # [2, 3, 4]
+    
+    Args:
+        items: Collection to slice
+        start: Starting index (inclusive)
+        end: Ending index (exclusive), None for end of list
+    
+    Returns:
+        New list with sliced items
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"slice_items requires list, got {type(items).__name__}")
+    
+    return items[start:end]
+
+
+def chunk(items: List[Any], size: int) -> List[List[Any]]:
+    """
+    Split collection into chunks of specified size.
+    
+    Example:
+        chunk([1, 2, 3, 4, 5], 2)  # [[1, 2], [3, 4], [5]]
+    
+    Args:
+        items: Collection to chunk
+        size: Size of each chunk
+    
+    Returns:
+        List of chunks (each chunk is a list)
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"chunk requires list, got {type(items).__name__}")
+    
+    if not isinstance(size, int) or size <= 0:
+        raise ValueError(f"chunk requires positive integer, got {size}")
+    
+    return [items[i:i + size] for i in range(0, len(items), size)]
+
+
+def join(items: List[str], separator: str = '') -> str:
+    """
+    Join string items with a separator.
+    
+    Example:
+        join(["a", "b", "c"], ", ")  # "a, b, c"
+    
+    Args:
+        items: Collection of strings
+        separator: String to insert between items
+    
+    Returns:
+        Joined string
+    
+    Author: David Van Aelst
+    Status: Decision Engine v2024 - Complete
+    """
+    if not isinstance(items, list):
+        raise TypeError(f"join requires list, got {type(items).__name__}")
+    
+    return separator.join(str(item) for item in items)
 
 
 __all__ = [
-    'count',
-    'is_empty',
-    'contains',
-    'filter_items',
-    'map_items',
-    'reduce',
-    'reverse',
-    'sort',
-    'zip',
-    'enumerate_items',
-    'range_list',
+    'count', 'is_empty', 'contains',
+    'filter_items', 'map_items', 'reduce',
+    'reverse', 'sort', 'zip_lists', 'enumerate_items',
+    'group_by', 'unique',
+    'max_value', 'min_value', 'sum_values',
+    'any_match', 'all_match',
+    'find', 'find_index', 'partition',
+    'take', 'skip', 'slice_items', 'chunk', 'join',
+    'range_list'
 ]
 
