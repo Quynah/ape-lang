@@ -1,5 +1,66 @@
 # Changelog
 
+## v1.0.5 — Full Standalone Runtime (2025-12-18)
+
+**Type:** Major feature release - Standalone execution engine with native stdlib
+
+### ✨ Runtime
+
+**Standalone Execution**
+- Added `ape run` CLI command for direct .ape file execution
+- Runtime executes APE programs without Python eval/exec dependency
+- Input/output contract: `ape run file.ape --input data.json --output result.json`
+- Exit codes: 0 (success), 1 (parse/validation/execution error)
+- Structured errors with file/line/column information
+
+**Native Stdlib Completeness**
+- JSON module (`ape.std.json`) — parse, stringify, get, set, has_path, flatten (100% coverage)
+- DateTime module (`ape.std.datetime`) — now, parse_iso8601, add/subtract, compare, format (100% coverage)
+- Collections module (`ape.std.collections`) — map, filter, reduce, count, sum, unique, find, any, all (100% coverage)
+- Math module (`ape.std.math`) — arithmetic, abs, sqrt, factorial (100% coverage)
+- Strings module (`ape.std.strings`) — concat, uppercase, lowercase, trim (100% coverage)
+- Logic module (`ape.std.logic`) — and, or, not (100% coverage)
+
+**Policy/Rules/Tables/Constraints — Runtime Active**
+- Decision tables execute at runtime with DMN hit policies (UNIQUE, FIRST, PRIORITY, ANY, COLLECT, RULE_ORDER)
+- Policy engine evaluates when/then rules at runtime
+- Rule engine fires conditional rules with priority and aggregation
+- Constraint checker enforces determinism and validates constraints
+
+**Qualified Calls**
+- Module system supports qualified function calls (e.g., `std.json.get()`, `datetime.now()`)
+- Import resolution with deterministic module loading
+- Namespace isolation between modules
+
+### ✅ Validation
+
+**Tests Executed:**
+- Total: 731 tests
+- Passed: 660 (90.3%)
+- Failed: 0
+- Skipped: 71 (exclusively v2.0 features: try/catch, Map<K,V>, Record, VM, optimizer)
+
+**Coverage:**
+- Runtime executor: 100%
+- Decision engine: 100%
+- Observability (trace/explain/replay): 100%
+- Standard library: 100%
+
+**Test Evidence:** See `docs/TEST_EVIDENCE.md` for full test run artifacts
+
+### 📚 Documentation
+
+**Added:**
+- `docs/DONE_DEFINITION.md` — Complete standalone runtime checklist
+- `docs/TEST_EVIDENCE.md` — Test evidence with coverage artifacts
+
+**Updated:**
+- Root `README.md` — Runtime Status section with usage examples
+- `packages/ape/README.md` — Standalone runtime architecture and contract
+- `CHANGELOG.md` — This file
+
+---
+
 ## v1.0.4 — Task Execution Runtime (2025-12-10)
 
 **Type:** Feature release - Runtime task execution with tuple returns and control flow

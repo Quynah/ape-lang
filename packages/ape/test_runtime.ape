@@ -1,0 +1,9 @@
+module test_runtime
+
+task hello_world:
+    input:
+        name: Text
+    output:
+        greeting: Text
+    steps:
+        set greeting = "Hello from APE Runtime!"

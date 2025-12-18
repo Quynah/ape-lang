@@ -197,12 +197,56 @@ def cmd_build(args) -> int:
         import traceback
         traceback.print_exc()
         return 1
+
+
+def cmd_run(args) -> int:
+    """Run command: execute Ape program directly using standalone runtime."""
+    try:
+        from ape.runtime.executor import RuntimeExecutor
+        from ape.runtime.context import ExecutionContext
         
-        print(f"\n✓ Build successful: {len(files)} file(s) generated in {out_dir}")
+        # Load input data if provided
+        input_data = {}
+        if args.input:
+            input_path = Path(args.input)
+            if not input_path.is_file():
+                print(f"ERROR: Input file not found: {input_path}", file=sys.stderr)
+                return 1
+            input_data = json.loads(input_path.read_text(encoding="utf-8"))
+        
+        # Parse and validate
+        module_ast = build_ast(args.path)
+        
+        # Execute using standalone runtime
+        executor = RuntimeExecutor()
+        context = ExecutionContext()
+        
+        # Set input data in context
+        for key, value in input_data.items():
+            context.set(key, value)
+        
+        # Execute the module
+        result = executor.execute(module_ast, context)
+        
+        # Output result
+        if args.output:
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_data = {
+                "result": result,
+                "context": {k: v for k, v in context.variables.items()}
+            }
+            output_path.write_text(json.dumps(output_data, indent=2), encoding="utf-8")
+            print(f"✓ Execution complete. Output written to {output_path}")
+        else:
+            print(f"✓ Execution complete.")
+            if result is not None:
+                print(f"Result: {result}")
+        
         return 0
         
     except Exception as e:
-        print(f"ERROR: {e}", file=sys.stderr)
+        print(f"EXECUTION ERROR: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc()
         return 1
@@ -212,11 +256,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
     """Build the argument parser with subcommands."""
     parser = argparse.ArgumentParser(
         prog="ape",
-        description="Ape language compiler - Because I Said So",
-        epilog="Example: python -m ape build examples/calculator_basic.ape --target=python"
+        description="Ape language compiler and standalone runtime",
+        epilog="Examples:\n  ape run file.ape --input data.json\n  ape build file.ape --target=python"
     )
     
     subparsers = parser.add_subparsers(dest="command", required=True)
+    
+    # run command (NEW - standalone execution)
+    p_run = subparsers.add_parser("run", help="Execute Ape program using standalone runtime")
+    p_run.add_argument("path", help=".ape source file")
+    p_run.add_argument("--input", help="input data file (JSON)")
+    p_run.add_argument("--output", help="output file path (JSON)")
+    p_run.set_defaults(func=cmd_run)
     
     # parse command
     p_parse = subparsers.add_parser("parse", help="Parse Ape source to AST")

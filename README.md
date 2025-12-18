@@ -17,12 +17,18 @@
 pip install ape-lang
 ```
 
-- ✅ **523 passing, 72 skipped** (full compiler pipeline + control flow + tuples)
+- ✅ **660 passing, 71 skipped** (standalone runtime + full stdlib + decision engine)
+- ✅ **Standalone execution engine** (AST-based interpreter, no Python eval/exec)
+- ✅ **Complete native stdlib** (JSON, DateTime, Collections, Math, Strings, Logic)
+- ✅ **Runtime-active decision logic** (decision tables, policies, rules, constraints)
 - ✅ **Multi-language support** (7 languages: EN, NL, FR, DE, ES, IT, PT)
-- ✅ **Runtime observability** (tracing, explanation, replay)
-- ✅ **Standard library** (logic, strings, collections, math)
-- ✅ **Control flow** (if/while/for with AST-based execution)
+- ✅ **Runtime observability** (tracing, explanation, replay, dry-run)
 - 📖 [**Full documentation →**](packages/ape/README.md)
+
+**How to run APE programs:**
+```bash
+ape run file.ape --input data.json --output result.json
+```
 
 ### AI Integration Packages
 

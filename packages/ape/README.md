@@ -4,6 +4,73 @@
 
 ---
 
+## Runtime Status
+
+**APE includes a standalone runtime that executes APE programs without requiring a host-language runtime for execution semantics.**
+
+The runtime is a complete execution engine that:
+- **Parses and executes .ape files directly** using an AST-based interpreter
+- **Implements all standard library functions natively** (JSON, DateTime, Collections, Math, Strings, Logic)
+- **Executes decision logic at runtime** (decision tables with DMN hit policies, policy engine, rule engine, constraint checker)
+- **Provides deterministic, observable, reproducible execution** with tracing, explanation, and replay capabilities
+- **No Python eval/exec dependency** for execution semantics
+
+### How to Run
+
+Execute APE programs using the standalone runtime:
+
+```bash
+# Direct execution with input/output
+ape run file.ape --input data.json --output result.json
+
+# Execute without input
+ape run program.ape
+
+# Validate before running
+ape validate file.ape
+
+# Generate Python code (transpiler mode)
+ape build file.ape --target python --out-dir generated
+```
+
+### Runtime Architecture (High-Level)
+
+```
+.ape source file
+      ↓
+Parser (tokenizer → AST)
+      ↓
+Validator (semantic + strictness checks)
+      ↓
+Executor (AST-based interpreter)
+      ↓
+Result (deterministic output)
+```
+
+The runtime supports:
+- **Module system:** `import` statements, qualified calls (`std.json.get()`)
+- **Control flow:** if/else, while loops, for loops
+- **Decision logic:** Decision tables, policies, rules, constraints
+- **Observability:** Execution tracing, human-readable explanations, deterministic replay
+- **Safety:** Iteration limits, dry-run mode, capability gating
+
+### Runtime Contract
+
+**Input:** JSON data structure (or empty)  
+**Output:** Deterministic result + execution context  
+**Errors:** Structured errors with file/line/column information  
+**Exit codes:**
+- `0` — Success
+- `1` — Parse error, validation error, or execution error
+
+**Guarantees:**
+- Same input → same output (deterministic)
+- No network/filesystem access during execution (pure computation)
+- Observable execution with complete trace
+- Replayable for audit and verification
+
+---
+
 ## Why Ape Exists
 
 Traditional programming languages allow ambiguity—multiple interpretations of the same code, implicit behavior, and "magic" that confuses both humans and AI systems. This creates a fundamental problem:
@@ -26,9 +93,9 @@ Ape is evolving into a complete language with its own module system, standard li
 
 ---
 
-## Status: v1.0.3
+## Status: v1.0.5
 
-Ape v1.0.3 is a stability release with critical control flow bug fixes and comprehensive testing guarantees documentation.
+**Ape v1.0.5 is the standalone runtime release with full execution engine and native stdlib.**
 
 **Author:** David Van Aelst
 
@@ -50,12 +117,14 @@ Four core modules in `ape_std/`:
 - **`math`** - Arithmetic operations (add, subtract, multiply, divide, power, abs, sqrt, factorial)
 
 #### Testing & Examples
-- **611 tests (539 passing, 72 skipped)** - Full coverage of parser, linker, codegen, stdlib, runtime, observability, introspection, multi-language, control flow, tuples, and tutorials
-- **Working examples** - hello_imports, stdlib_complete, custom_lib_project
-- **Tutorial scenarios** - 9 realistic scenarios with 46 enriched tests (AI governance, Anthropic/LangChain/OpenAI integration, risk classification, etc.)
-- **Documentation** - Complete specs for modules, stdlib, runtime, multi-language, and philosophy
+- **660 tests (660 passing, 71 skipped)** — Full coverage of compiler, linker, codegen, stdlib, runtime, decision engine, observability, introspection, multi-language, control flow, tuples, and tutorials
+- **Zero failures** — Production-ready quality
+- **Working examples** — hello_imports, stdlib_complete, custom_lib_project
+- **Tutorial scenarios** — 9 realistic scenarios with comprehensive tests (AI governance, Anthropic/LangChain/OpenAI integration, risk classification, etc.)
+- **Documentation** — Complete specs for runtime, stdlib, modules, decision engine, and testing guarantees
 
-See [docs/APE_TESTING_GUARANTEES.md](docs/APE_TESTING_GUARANTEES.md) for details on what these tests guarantee.
+See [docs/DONE_DEFINITION.md](docs/DONE_DEFINITION.md) for the complete runtime feature checklist.  
+See [docs/TEST_EVIDENCE.md](docs/TEST_EVIDENCE.md) for detailed test run evidence.
 
 #### Control Flow & Runtime
 - **If/else if/else** - Conditional branching
