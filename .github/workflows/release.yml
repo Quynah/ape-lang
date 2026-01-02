@@ -1,0 +1,102 @@
+name: Release on VERSION change
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - VERSION
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git auth
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config url."https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version
+        id: version
+        run: echo "tag=v$(cat VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: tagcheck
+        run: |
+          if git ls-remote --exit-code --tags origin "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag already exists
+        if: steps.tagcheck.outputs.exists == 'true'
+        run: echo "Tag ${{ steps.version.outputs.tag }} already exists; skipping."
+
+      - name: Create tag
+        if: steps.tagcheck.outputs.exists == 'false'
+        run: |
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        if: steps.tagcheck.outputs.exists == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build all packages
+        if: steps.tagcheck.outputs.exists == 'false'
+        run: |
+          rm -rf dist
+          python -m pip install --upgrade pip build
+          for pkg in packages/ape packages/ape-openai packages/ape-anthropic packages/ape-langchain; do
+            python -m build "$pkg"
+            mkdir -p dist
+            mv "$pkg"/dist/* dist/
+          done
+
+      - name: Generate checksums
+        if: steps.tagcheck.outputs.exists == 'false'
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create GitHub release
+        if: steps.tagcheck.outputs.exists == 'false'
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          body="Automated release for ${tag}"
+          api="https://api.github.com/repos/${{ github.repository }}/releases"
+          data=$(jq -n --arg tag "$tag" --arg name "$tag" --arg body "$body" '{tag_name:$tag,name:$name,body:$body,generate_release_notes:false}')
+          response=$(curl -sSL -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api" -d "$data")
+          upload_url=$(echo "$response" | jq -r '.upload_url' | sed 's/{?name,label}//')
+          echo "upload_url=$upload_url" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifacts
+        if: steps.tagcheck.outputs.exists == 'false'
+        env:
+          UPLOAD_URL: ${{ steps.create_release.outputs.upload_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for file in dist/*; do
+            name=$(basename "$file")
+            curl -sSL -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @"$file" "${UPLOAD_URL}?name=${name}"
+          done
