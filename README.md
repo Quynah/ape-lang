@@ -424,7 +424,7 @@ Potential extensions:
 
 ---
 
-**Status:** 🟢 Prototype v0.1 - Parser, Validator & Python Codegen working
+**Status:** 🟢 Prototype v1.0.6 - Parser, Validator & Python Codegen working
 
 **Date:** December 3, 2025
 
