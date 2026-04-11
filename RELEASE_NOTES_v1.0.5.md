@@ -1,6 +1,6 @@
 # APE v1.0.5 Release Notes
 
-**Release Date:** December 17, 2024  
+**Release Date:** December 17, 2025  
 **Branch:** feat/ape-decision-engine → main
 
 ## 🎯 Decision Engine: Industry-Grade Completeness
