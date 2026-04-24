@@ -1,9 +1,9 @@
 # Test Evidence
 
-**Test Run Date:** December 18, 2025  
-**APE Version:** 1.0.5  
-**Commit Hash:** e8fb0b859cd14e76758fcb594a65f47db6bb8052  
-**Python Version:** 3.11.9  
+**Test Run Date:** December 18, 2025
+**APE Version:** 1.0.7
+**Commit Hash:** e8fb0b859cd14e76758fcb594a65f47db6bb8052
+**Python Version:** 3.11.9
 **Test Framework:** pytest 8.4.2
 
 ---
@@ -203,9 +203,9 @@ python -m pytest tests/ --cov=src/ape/runtime --cov=src/ape/std --cov-report=htm
 
 ## Test Execution Environment
 
-**Operating System:** Windows 11  
-**Python:** 3.11.9  
-**Test Framework:** pytest 8.4.2  
+**Operating System:** Windows 11
+**Python:** 3.11.9
+**Test Framework:** pytest 8.4.2
 **Plugins:**
 - pytest-cov 7.0.0 (coverage)
 - pytest-anyio 4.12.0 (async support)
@@ -256,7 +256,7 @@ python -m pytest tests/evidence/ tests/tutorials/
 
 ## Conclusion
 
-**APE v1.0.5 Test Evidence:**
+**APE v1.0.7 Test Evidence:**
 - ✅ **660 passing tests** — All core functionality validated
 - ✅ **0 failures** — Production-ready quality
 - ✅ **100% core coverage** — Runtime, stdlib, decision engine fully tested

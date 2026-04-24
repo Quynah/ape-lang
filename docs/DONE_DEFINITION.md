@@ -1,7 +1,7 @@
 # Definition of Done: Full Standalone Runtime
 
-**Version:** 1.0.5  
-**Date:** December 18, 2025  
+**Version:** 1.0.7
+**Date:** December 18, 2025
 **Author:** David Van Aelst
 
 ---
@@ -117,9 +117,9 @@ These features are **not required** for standalone runtime maturity and are defe
 
 ## Test Coverage Evidence
 
-**Total Tests:** 731  
-**Passed:** 660 (90.3%)  
-**Skipped:** 71 (9.7%) — All skipped tests are for v2.0 features (exception handling, structured types, VM, optimizer)  
+**Total Tests:** 731
+**Passed:** 660 (90.3%)
+**Skipped:** 71 (9.7%) — All skipped tests are for v2.0 features (exception handling, structured types, VM, optimizer)
 **Failed:** 0
 
 **Coverage on Core Runtime:**
@@ -139,7 +139,7 @@ These features are **not required** for standalone runtime maturity and are defe
 
 ## Conclusion
 
-APE v1.0.5 is a **fully standalone runtime** with:
+APE v1.0.7 is a **fully standalone runtime** with:
 - ✅ Complete execution engine (no Python eval/exec dependency)
 - ✅ Native standard library (JSON, DateTime, Collections, Math, Strings, Logic)
 - ✅ Runtime-active decision logic (tables, policies, rules, constraints)

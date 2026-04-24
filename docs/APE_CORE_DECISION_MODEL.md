@@ -158,6 +158,13 @@ policy risk_assessment:
 ### Tracing
 - Execution produces audit trail
 - All data access logged
+
+## Effects & Capabilities (MVP-1)
+
+- **Pure-by-default**: decision steps are treated as pure unless the feature flag `APE_CAP_EFFECTS=1` is enabled and matching `effects:` annotations are present.
+- **Capabilities**: declarative blocks describe policies (e.g., `allowed_hosts`, `timeout_ms`) and exposed operations (`http.get`, `db.query`). They do not execute network/IO in this MVP; they only gate validation and tracing.
+- **Validation**: when the flag is on, using an effect-like operation without listing it in `effects:` fails fast with `E_UNCONTROLLED_SIDE_EFFECT`.
+- **Dry-run planning**: the runtime emits `effect.planned` trace events (feature-flagged) containing `effect_key`, `capability`, `policy_hash`, and a deterministic `fingerprint` of the planned request shape. No live calls are performed.
 - Decision path reconstructable
 
 ### Error Handling
@@ -223,21 +230,21 @@ task assess_risk:
 4. Compute score deterministically
 5. Return structured result
 
-## Migration from v1.0.4 to v1.0.5
+## Migration from previous versions
 
 ### New Capabilities
-✅ Map/Record literals  
-✅ DateTime type system  
-✅ Collection aggregations  
-✅ JSON path access  
+✅ Map/Record literals
+✅ DateTime type system
+✅ Collection aggregations
+✅ JSON path access
 ✅ Policy expressivity (any/all)
 
 ### Breaking Changes
 ❌ None – all new features are additive
 
 ### Limitations
-⚠️ Multi-line maps require single-line syntax  
-⚠️ Qualified calls (`std.module.func`) not yet in parser  
+⚠️ Multi-line maps require single-line syntax
+⚠️ Qualified calls (`std.module.func`) not yet in parser
 ⚠️ Generic syntax (`List<T>`) not implemented
 
 ## Future Roadmap
@@ -250,7 +257,7 @@ task assess_risk:
 
 ---
 
-**Version:** Decision Engine v2024  
-**Status:** Production-ready for Quynah workflows  
-**Author:** David Van Aelst  
+**Version:** Decision Engine v2024
+**Status:** Production-ready for Quynah workflows
+**Author:** David Van Aelst
 **Date:** 2024-12-17

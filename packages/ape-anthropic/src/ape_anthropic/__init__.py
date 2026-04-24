@@ -33,10 +33,10 @@ from ape_anthropic.generator import generate_ape_from_nl
 class ApeTask:
     """
     Represents an Ape task for Claude integration.
-    
+
     Wrapper around APE's FunctionSignature with a simpler interface.
     """
-    
+
     def __init__(
         self,
         name: str,
@@ -48,7 +48,7 @@ class ApeTask:
         self.inputs = inputs
         self.output = output
         self.description = description
-    
+
     @classmethod
     def from_signature(cls, sig: Any) -> "ApeTask":
         """Create ApeTask from APE FunctionSignature."""
@@ -60,7 +60,7 @@ class ApeTask:
         )
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.7"
 
 __all__ = [
     "ape_task_to_claude_schema",

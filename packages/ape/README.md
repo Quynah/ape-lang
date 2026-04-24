@@ -56,9 +56,9 @@ The runtime supports:
 
 ### Runtime Contract
 
-**Input:** JSON data structure (or empty)  
-**Output:** Deterministic result + execution context  
-**Errors:** Structured errors with file/line/column information  
+**Input:** JSON data structure (or empty)
+**Output:** Deterministic result + execution context
+**Errors:** Structured errors with file/line/column information
 **Exit codes:**
 - `0` — Success
 - `1` — Parse error, validation error, or execution error
@@ -85,17 +85,17 @@ Ape solves this by:
 
 ### Two Roles, One Language
 
-**1. Translator Layer (Bridge Language)**  
+**1. Translator Layer (Bridge Language)**
 Ape translates human/AI intent into target languages (currently Python). AI models can generate Ape code reliably because the syntax is unambiguous and the compiler enforces correctness.
 
-**2. Standalone Language**  
+**2. Standalone Language**
 Ape is evolving into a complete language with its own module system, standard library, type system, and (eventually) bytecode VM.
 
 ---
 
-## Status: v1.0.5
+## Status: v1.0.7
 
-**Ape v1.0.5 is the standalone runtime release with full execution engine and native stdlib.**
+**Ape v1.0.7 is the standalone runtime release with full execution engine and native stdlib.**
 
 **Author:** David Van Aelst
 
@@ -123,7 +123,7 @@ Four core modules in `ape_std/`:
 - **Tutorial scenarios** — 9 realistic scenarios with comprehensive tests (AI governance, Anthropic/LangChain/OpenAI integration, risk classification, etc.)
 - **Documentation** — Complete specs for runtime, stdlib, modules, decision engine, and testing guarantees
 
-See [docs/DONE_DEFINITION.md](docs/DONE_DEFINITION.md) for the complete runtime feature checklist.  
+See [docs/DONE_DEFINITION.md](docs/DONE_DEFINITION.md) for the complete runtime feature checklist.
 See [docs/TEST_EVIDENCE.md](docs/TEST_EVIDENCE.md) for detailed test run evidence.
 
 #### Control Flow & Runtime
@@ -320,7 +320,7 @@ si x > 5:
 """, context={'x': 10}, language='fr')
 ```
 
-**Supported:** EN, NL, FR, DE, ES, IT, PT (Latin script only)  
+**Supported:** EN, NL, FR, DE, ES, IT, PT (Latin script only)
 **See:** [docs/multilanguage.md](docs/multilanguage.md) for full details
 
 ---
@@ -388,11 +388,11 @@ task count_and_sum:
     steps:
         - set count to 0
         - set total to 0
-        
+
         while count < max_count:
             - set total to total + count
             - set count to count + 1
-        
+
         - call sys.print with total
         - return total
 ```
@@ -537,7 +537,7 @@ that verifies semantic correctness beyond parsing.
 - APE → Python type mapping
 
 **DateTime & Duration Semantics**
-- UTC-based temporal operations  
+- UTC-based temporal operations
 - Deterministic datetime arithmetic
 - ISO-8601 serialization/deserialization
 - Comparison operations
@@ -872,11 +872,11 @@ task calculate:
         y: Integer
     outputs:
         result: Integer
-    
+
     # Explicit constraints
     constraints:
         - deterministic
-    
+
     steps:
         - call math.add with x and y to get result
         - return result
@@ -980,9 +980,9 @@ See [LICENSE](LICENSE) for full details.
 
 ## Project Status
 
-**Current Version:** v1.0.3  
-**Status:** 🟢 Stable release  
-**Tests:** 611/611 passing  
+**Current Version:** v1.0.3
+**Status:** 🟢 Stable release
+**Tests:** 611/611 passing
 **Target:** v0.4.0+ (Planned enhancements)
 
 **Quick Links:**

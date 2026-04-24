@@ -7,7 +7,7 @@ Main package for the Ape compiler.
 from pathlib import Path
 from typing import Union, Any
 import tempfile
-import importlib.util
+from types import SimpleNamespace
 
 from ape.runtime.core import ApeModule
 from ape.runtime.context import ExecutionContext, ExecutionError, MaxIterationsExceeded
@@ -35,8 +35,9 @@ from ape.errors import (
 )
 from ape.cli import build_project
 from ape.codegen.python_codegen import PythonCodeGenerator
+from ape.codegen.python_codegen import mangle_name
 
-__version__ = "1.0.4"
+__version__ = "1.0.7"
 
 
 class ApeCompileError(Exception):
@@ -52,6 +53,107 @@ class ApeValidationError(Exception):
 class ApeExecutionError(Exception):
     """Raised when Ape code execution fails at runtime."""
     pass
+
+
+def _map_ape_type_to_python(type_name: str) -> Any:
+    """Map APE type names to Python runtime types for function annotations."""
+    type_map = {
+        "String": str,
+        "Integer": int,
+        "Float": float,
+        "Decimal": float,
+        "Boolean": bool,
+        "Any": Any,
+    }
+    return type_map.get(type_name, Any)
+
+
+def _build_task_doc(task: Any) -> str:
+    """Create deterministic task docstring for generated callables."""
+    lines = [f"Safely loaded callable for APE task '{task.name}'."]
+    if getattr(task, "steps", None):
+        lines.append("")
+        lines.append("Steps:")
+        for step in task.steps:
+            if hasattr(step, "action") and step.action:
+                lines.append(f"    - {step.action}")
+    return "\n".join(lines)
+
+
+def _build_safe_task_callable(public_name: str, task_node: Any) -> Any:
+    """Build a deterministic callable that executes a parsed APE task node."""
+    input_specs = []
+    for input_field in getattr(task_node, "inputs", []):
+        annotation = Any
+        if getattr(input_field, "type_annotation", None) is not None:
+            type_name = getattr(input_field.type_annotation, "type_name", None)
+            if type_name:
+                annotation = _map_ape_type_to_python(type_name)
+        input_specs.append((input_field.name, annotation))
+
+    output_fields = getattr(task_node, "outputs", [])
+    if len(output_fields) == 0:
+        return_annotation = type(None)
+    elif len(output_fields) == 1:
+        output_type = getattr(output_fields[0], "type_annotation", None)
+        return_annotation = _map_ape_type_to_python(output_type.type_name) if output_type else Any
+    else:
+        return_annotation = tuple
+
+    required_names = [name for name, _ in input_specs]
+
+    def _task_callable(**kwargs: Any) -> Any:
+        provided = set(kwargs.keys())
+        required = set(required_names)
+
+        missing = sorted(required - provided)
+        if missing:
+            raise TypeError(f"Missing required arguments: {missing}")
+
+        extra = sorted(provided - required)
+        if extra:
+            raise TypeError(f"Unknown arguments: {extra}")
+
+        context = ExecutionContext()
+        for name in required_names:
+            context.set(name, kwargs[name])
+
+        executor = RuntimeExecutor()
+        return executor.execute_task(task_node, context)
+
+    annotations = {name: annotation for name, annotation in input_specs}
+    annotations["return"] = return_annotation
+    _task_callable.__annotations__ = annotations
+    _task_callable.__name__ = public_name
+    _task_callable.__qualname__ = public_name
+    _task_callable.__doc__ = _build_task_doc(task_node)
+
+    return _task_callable
+
+
+def _build_safe_compiled_module(parsed_ast: Any, module_name: str) -> Any:
+    """Construct a module-like object from parsed AST without dynamic code execution."""
+    if not hasattr(parsed_ast, "tasks"):
+        raise TypeError("Parsed AST is malformed: missing 'tasks'")
+
+    tasks = getattr(parsed_ast, "tasks")
+    if not isinstance(tasks, list):
+        raise TypeError("Parsed AST is malformed: 'tasks' must be a list")
+
+    safe_module = SimpleNamespace()
+    safe_module._ape_ast = parsed_ast
+    safe_module._task_cache = {}
+
+    module_decl_name = parsed_ast.name if getattr(parsed_ast, "name", "") else None
+
+    for task in tasks:
+        if not hasattr(task, "name") or not isinstance(task.name, str) or not task.name:
+            raise TypeError("Parsed AST task is malformed: missing non-empty string 'name'")
+        mangled_name = mangle_name(module_decl_name, task.name)
+        safe_module._task_cache[mangled_name] = task
+        setattr(safe_module, mangled_name, _build_safe_task_callable(mangled_name, task))
+
+    return safe_module
 
 
 def compile(source_or_path: Union[str, Path]) -> ApeModule:
@@ -83,7 +185,7 @@ def compile(source_or_path: Union[str, Path]) -> ApeModule:
         8
     """
     temp_source_path: Path | None = None
-    
+
     try:
         # Determine if it's a file path or source code
         path_obj = Path(source_or_path) if isinstance(source_or_path, (str, Path)) else None
@@ -100,7 +202,7 @@ def compile(source_or_path: Union[str, Path]) -> ApeModule:
 
         # Build project IR (includes linking)
         project = build_project(source_path)
-        
+
         # Also parse to get AST for runtime execution
         from ape.tokenizer.tokenizer import Tokenizer
         from ape.parser.parser import Parser
@@ -122,26 +224,11 @@ def compile(source_or_path: Union[str, Path]) -> ApeModule:
         # In future, may need to handle multi-module projects
         generated = files[0]
 
-        # Load the generated Python code as a module
+        # Resolve module name from generated artifact path.
         module_name = Path(generated.path).stem
-        spec = importlib.util.spec_from_loader(module_name, loader=None)
-        if spec is None:
-            raise ApeCompileError(f"Failed to create module spec for {module_name}")
 
-        python_module = importlib.util.module_from_spec(spec)
-        
-        # Inject AST and task cache before executing generated code
-        python_module.__dict__['_ape_ast'] = ast
-        python_module.__dict__['_task_cache'] = {}
-        
-        # Build task cache from AST
-        if hasattr(ast, 'tasks'):
-            for task in ast.tasks:
-                mangled_name = f"{ast.name}__{task.name}" if ast.name else task.name
-                python_module.__dict__['_task_cache'][mangled_name] = task
-
-        # Execute the generated code in the module's namespace
-        exec(generated.content, python_module.__dict__)
+        # Build a structured module without executing generated Python source.
+        python_module = _build_safe_compiled_module(ast, module_name)
 
         # Wrap in ApeModule for stable API
         ape_module = ApeModule(module_name, python_module)
@@ -162,17 +249,17 @@ def compile(source_or_path: Union[str, Path]) -> ApeModule:
 def validate(module: ApeModule) -> None:
     """
     Validate an Ape module for semantic correctness and strictness.
-    
+
     Note: In the current implementation, validation happens during compile().
     This function is provided for API completeness and may be extended
     to support runtime validation in future versions.
-    
+
     Args:
         module: The ApeModule to validate
-        
+
     Raises:
         ApeValidationError: If validation fails
-        
+
     Example:
         >>> module = compile("examples/calculator.ape")
         >>> validate(module)  # Raises if invalid
@@ -186,29 +273,29 @@ def validate(module: ApeModule) -> None:
 def run(source: str, *, context: dict | None = None, language: str = "en") -> Any:
     """
     Execute Ape source code using AST-based runtime.
-    
+
     This is a convenience function that:
     1. Normalizes language-specific syntax to canonical APE (if needed)
     2. Tokenizes and parses the source into an AST
     3. Creates an ExecutionContext (optionally with initial variables)
     4. Executes the AST using RuntimeExecutor
-    
+
     This provides a quick way to run Ape code without going through
     the full compilation pipeline. Useful for experiments and testing.
-    
+
     Args:
         source: Ape source code as a string
         context: Optional dictionary of initial variables
         language: ISO 639-1 language code (default: 'en')
                   Supported: en, nl, fr, de, es, it, pt
-        
+
     Returns:
         The result of executing the program
-        
+
     Raises:
         ExecutionError: If runtime execution fails
         ValidationError: If language code is unsupported
-        
+
     Example:
         >>> result = run('''
         ... task main:
@@ -225,7 +312,7 @@ def run(source: str, *, context: dict | None = None, language: str = "en") -> An
         ... ''', context={'x': 5})
         >>> print(result)
         10
-        
+
         >>> # Dutch syntax
         >>> result = run('''
         ... task main:
@@ -237,25 +324,25 @@ def run(source: str, *, context: dict | None = None, language: str = "en") -> An
     from ape.tokenizer.tokenizer import Tokenizer
     from ape.parser.parser import Parser
     from ape.lang import get_adapter
-    
+
     # Normalize language-specific syntax to canonical APE
     adapter = get_adapter(language)
     normalized_source = adapter.normalize_source(source)
-    
+
     # Tokenize
     tokenizer = Tokenizer(normalized_source)
     tokens = tokenizer.tokenize()
-    
+
     # Parse
     parser = Parser(tokens)
     ast = parser.parse()
-    
+
     # Create execution context
     exec_context = ExecutionContext()
     if context:
         for key, value in context.items():
             exec_context.set(key, value)
-    
+
     # Execute
     executor = RuntimeExecutor()
     return executor.execute(ast, exec_context)
@@ -267,28 +354,28 @@ __all__ = [
     "compile",
     "validate",
     "run",
-    
+
     # Core runtime
     "ApeModule",
     "ExecutionContext",
     "RuntimeExecutor",
-    
+
     # Tracing & observability
     "TraceCollector",
     "TraceEvent",
-    
+
     # Explanation & replay
     "ExplanationStep",
     "ExplanationEngine",
     "ReplayEngine",
-    
+
     # Runtime profiles
     "RUNTIME_PROFILES",
     "get_profile",
     "list_profiles",
     "create_context_from_profile",
     "create_executor_config_from_profile",
-    
+
     # Errors (v1.0 unified hierarchy)
     "ApeError",
     "ApeCompileError",

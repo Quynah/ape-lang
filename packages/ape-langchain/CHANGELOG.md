@@ -5,6 +5,12 @@ All notable changes to `ape-langchain` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2026-04-24
+
+### Changed
+- Bumped package version to `1.0.7`
+- Updated dependency to `ape-lang>=1.0.7`
+
 ## [1.0.4] - 2025-12-10
 
 ### Changed

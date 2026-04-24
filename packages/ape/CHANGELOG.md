@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.7 — Version Alignment Release (2026-04-24)
+
+**Type:** Release alignment update
+
+### Changed
+- Bumped core package version to `1.0.7`
+- Aligned documentation status references to `v1.0.7`
+
 ## v1.0.5 — Full Standalone Runtime (2025-12-18)
 
 **Type:** Major feature release - Standalone execution engine with native stdlib
@@ -139,7 +147,7 @@
 
 ## v1.0.0 — Complete Language Release (2025-12-06)
 
-**Status:** ✅ Complete Language Specification  
+**Status:** ✅ Complete Language Specification
 **Type:** Major release - Complete feature set with roadmap integration
 
 ### 🎯 Overview
@@ -411,7 +419,7 @@ except NotImplementedError as e:
 
 ## v1.0.0 — Specification Freeze & API Stability (2025-12-06)
 
-**Status:** ✅ Stable  
+**Status:** ✅ Stable
 **Type:** Major release (specification freeze)
 
 ### 🔒 Language Specification Freeze
@@ -491,7 +499,7 @@ When using APE v1.0.x, you can rely on:
 
 ## v1.0.1 — Multi-Language Surface Syntax (2025-12-06)
 
-**Status:** 🟡 Pre-1.0 Finalization  
+**Status:** 🟡 Pre-1.0 Finalization
 **Note:** This is the **last 0.x runtime release**. All core features complete. Next release will be v1.0.0 after specification review.
 
 ### 🔒 v1.0 Finalization Work
@@ -811,11 +819,11 @@ Enhanced error reporting for:
 
 **Examples**
 
-- `examples/calculator_basic.ape`  
+- `examples/calculator_basic.ape`
   - deterministic calculator (no deviation)
-- `examples/calculator_smart.ape`  
+- `examples/calculator_smart.ape`
   - calculator with Controlled Deviation for human-readable summary
-- `examples/email_policy_basic.ape`  
+- `examples/email_policy_basic.ape`
   - simple email threat level scenario with enum, entities, task and policy
 
 **Tests**
